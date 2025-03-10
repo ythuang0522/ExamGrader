@@ -1,0 +1,308 @@
+
+題號 5d:
+題目內容：Compute the Longest Palindrome Subsequence (LPS) in any sequence using dynamic programming. Given a string "character," the LPS is "carac." You should write down the recurrence and bottom-up computation.
+
+標準答案：(d) LPS即原序列和其反轉序列的LCS
+原序列S=character
+反轉序列Ś=retcarahc
+① Recurrence 計算序列S和S'的LCS
+dp(i,j) = { 0, if i=0 or j=0
+dp(i-1,j-1)+1, if s[i] = s[j]
+max { dp(i-1,j), dp(i,j-1)}, otherwise
+② Bottom-up
+[TABLE]
+⇒ carac
+標準答案表格：
+| i   | j         | 0    | 1    | 2    | 3    | 4    | 5    | 6    | 7    | 8    | 9    |      |
+|-----|-----------|------|------|------|------|------|------|------|------|------|------|------|
+|     | S_j       |      | c    | h    | a    | r    | a    | c    | t    | e    | r    |      |
+| 0   | S_i       | 0    | 0    | 0    | 0    | 0    | 0    | 0    | 0    | 0    | 0    |      |
+| 1   | r         | 0    | 0    | 0    | 0    | 1    | 1    | 1    | 1    | 1    | 1    |      |
+| 2   | e         | 0    | 0    | 0    | 0    | 1    | 1    | 1    | 1    | 2    | 2    |      |
+| 3   | t         | 0    | 0    | 0    | 0    | 1    | 1    | 1    | 2    | 2    | 2    |      |
+| 4   | c         | 0    | 1    | 1    | 1    | 1    | 1    | 2    | 2    | 2    | 2    |      |
+| 5   | a         | 0    | 1    | 1    | 2    | 2    | 2    | 2    | 2    | 2    | 2    |      |
+| 6   | r         | 0    | 1    | 1    | 2    | 3    | 3    | 3    | 3    | 3    | 3    |      |
+| 7   | a         | 0    | 1    | 1    | 2    | 3    | 4    | 4    | 4    | 4    | 4    |      |
+| 8   | h         | 0    | 1    | 2    | 2    | 3    | 4    | 4    | 4    | 4    | 4    |      |
+| 9   | c         | 0    | 1    | 2    | 2    | 3    | 4    | 5    | 5    | 5    | 5    |      |
+
+學生答案：無學生答案
+
+得分：0.0/10
+理由：學生並未提交任何答案，因此無法匹配標準答案中的關鍵內容，如使用LCS求解最長回文子序列的遞迴式與底向上計算表格。由於答案缺失，依評分規則給予0分。
+
+==================================================
+
+題號 7:
+題目內容：Consider the following six activities with (start time, finish time, and value): (2, 4, 3), (5, 5, 5), (3, 4, 2), (1, 4, 3), (1, 3, 1), (3, 5, 4). Illustrate a dynamic programming algorithm for computing the mutually-exclusive subset of activities of maximum total values using the above example.
+
+標準答案：Sort by the finish time.
+Let H(i) = max {l= {1,2,..., i-1} | f_l ≤ s_i}
+Let A(i) = max { A(i-1), A(H(i)) + v_i} (A(i) = max value for activity 1 to i)
+[TABLE]
+=> maximum value = 10
+標準答案表格：
+| activity | 1 | 2 | 3 | 4 | 5 | 6 |
+|----------|---|---|---|---|---|---|
+| start    | 1 | 1 | 2 | 3 | 3 | 5 |
+| finish   | 3 | 4 | 4 | 4 | 5 | 5 |
+| value    | 1 | 3 | 3 | 2 | 4 | 5 |
+| H(i)     | 0 | 0 | 0 | 1 | 1 | 5 |
+| A(i)     | 1 | 3 | 3 | 4 | 5 | 10 |
+
+學生答案：無學生答案
+
+得分：0.0/10
+理由：學生並未提交任何答案，因此沒有展示任何與標準答案重點相符的概念、步驟或表格內容，因此按照評分規則得0分。
+
+==================================================
+
+題號 6:
+題目內容：Consider the knapsack problem of n items and W pack size. Suppose the pack/item sizes are very large and the item values are very small. Give a dynamic programming for solving this problem. Illustrate your algorithm using the following example (W=500).
+[TABLE]
+題目表格：
+| Item | Weight | Value |
+|---------|---------|---------|
+| 1   | 100   | 1   |
+| 2   | 200   | 2   |
+| 3   | 250   | 4   |
+| 4   | 300   | 5   |
+
+標準答案：b. ① Let v_i = value of the ith item.
+w_i = weight of the ith item.
+dp(i,j) = the minimum weight to achieve value j using the first i items.
+(1≤i≤n, 0≤j≤V, where V represents the sum of values.)
+dp(i,j) = { 0, if i=0 or j=0
+max { dp[i-1,j), dp (i-1, j-v_i) + w_i}, otherwise
+② 置表找出小於背包重量W=500的最大價值.
+[TABLE]
+⇒ value = 7
+標準答案表格：
+| i   | j   | 0   | 1   | 2   | 3   | 4   | 5   | 6   | 7   | 8   | 9   | 10  | 11  | 12  |
+|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|-----|
+| 1   |     | 0   | 100 | \   | \   | \   | \   | \   | \   | \   | \   | \   | \   | \   |
+| 2   |     | 0   | 100 | 200 | 300 | \   | \   | \   | \   | \   | \   | \   | \   | \   |
+| 3   |     | 0   | 100 | 200 | 300 | 250 | 350 | 450 | 550 | \   | \   | \   | \   | \   |
+| 4   |     | 0   | 100 | 200 | 300 | 250 | 300 | 400 | 500 | 600 | 550 | 650 | 750 | 810 |
+
+學生答案：無學生答案
+
+得分：0.0/10
+理由：學生並未提供任何答案，與標準答案的重點完全不符，因此依據評分規則，給予0分。
+
+==================================================
+
+題號 5c:
+題目內容：Given a string, find the longest subsequence occurring at least twice in the string, requiring their indices must not overlap. e.g., Given ATACTCGAG, the answer is 4 since ATCG occurs twice and their indices (i.e., (1,2,4,7) and (3,5,6,9)) do not overlap. Describe a dynamic programming (recurrence) for this problem. Illustrate a bottom-up DP using the string ATACTCGAG.
+
+標準答案：(1) Recurrence
+Let the given sequence be S.
+dp (i,j) =
+{
+0, if i=0 or j = 0
+dp(i-1, j-1)+1, if S[i] = S[j] and i ≠ j
+max { dp (i-1,j), dp(i,j-1)}, otherwise
+}
+
+(2) Bottom-up DP
+[TABLE]
+
+=> Print in reverse order: ATCG
+```
+標準答案表格：
+|     | j | 0   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|-----|---|-----|---|---|---|---|---|---|---|---|---|
+| i   |   | S_j | A | T | A | C | T | C | G | A | G |
+| 0   | S_i | 0   | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 1   | A   | 0   | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+| 2   | T   | 0   | 0 | 0 | 1 | 1 | 2 | 2 | 2 | 2 | 2 |
+| 3   | A   | 0   | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 3 | 3 |
+| 4   | C   | 0   | 1 | 1 | 1 | 1 | 2 | 3 | 3 | 3 | 3 |
+| 5   | T   | 0   | 1 | 2 | 2 | 2 | 2 | 3 | 3 | 3 | 3 |
+| 6   | C   | 0   | 1 | 2 | 2 | 3 | 3 | 3 | 3 | 3 | 3 |
+| 7   | G   | 0   | 1 | 2 | 2 | 3 | 3 | 3 | 3 | 3 | 4 |
+| 8   | A   | 0   | 1 | 2 | 3 | 3 | 3 | 3 | 3 | 3 | 4 |
+| 9   | G   | 0   | 1 | 2 | 3 | 3 | 3 | 3 | 4 | 4 | 4 |
+
+學生答案：無學生答案
+
+得分：0.0/10
+理由：學生完全沒有提交任何答案，無法評估是否涵蓋了題目要求的動態規劃的遞推關係或底向上DP表格，因此按照評分標準給予0分。
+
+==================================================
+
+題號 2b:
+題目內容：T(n) = 2T(√n) + lgn (hint: you may replace n with other form)
+
+標準答案：Let k = lgn, n = 2^k
+T(n) = 2T(√n) + lgn
+=> T(2^k) = 2T(2^(k/2)) + k
+Let S(k) = T(2^k)
+S(k) = 2S(k/2) + k
+By Master Theorem,
+log_2 2 = 1 => S(k) = O(klogk)
+T(2^k) = O(klogk) => T(n) = O(lognloglogn)
+
+學生答案：T(n) = 2T(√n) + log n
+set k = log n, n=2^k.
+=>T(2^k) = 2T(2^(k/2)) + k
+set S(k) = T(2^k)
+=> S(k) = 2S(k/2) + k
+=> S(k) ≤ 2S(k/2) + ck use Master Theorem => S(k) = O(k log k)
+=> T(n) = O(log n * log log n)
+
+得分：10.0/10
+理由：學生答案使用相同的變數代換 k = log n，並將 T(n) 轉換為 S(k) = T(2^k)，進而得到遞迴關係 S(k) = 2S(k/2) + k。接著利用 Master Theorem 得出 S(k) = O(k log k) 並轉換回 T(n) = O(log n · log log n) 的結論，完全符合標準答案的分析和結論。
+
+==================================================
+
+題號 1:
+題目內容：Suppose you are asked to implement the n-th Fibanacci number using recursion only (i.e., no loop implementation)? How to avoid stack overflow for large n?
+
+標準答案：使用tail recursion:
+int Fibl int n, int a, int b) {
+if (n == 0)
+return a;
+return Fib (n-1, b, a+b);
+}
+
+學生答案：可以用tail recursion,因為把recursion擺在函式的最後一步,
+讓 call stack 不會被呼叫時創建的新frame塞滿,從而避免stack
+overflow.
+tail recursion:
+int fib (int n, int a, int b) {
+if (n==0)
+return a;
+if (n == 1)
+return b;
+return fib (n-1, b, a+b);
+}
+
+得分：10.0/10
+理由：學生答案與標準答案在核心重點上完全一致，皆提到了利用尾遞迴以避免在大 n 的情況下因為呼叫棧不斷增加而產生的 stack overflow 問題。學生也提供了一個尾遞迴版本的範例程式碼，僅在細節上如增加 n==1 的基底判斷略有不同，但並未影響尾遞迴的核心概念。故依照評分規則，該答案得10分。
+
+==================================================
+
+題號 4:
+題目內容：Mr. Stupid claims we can sort n real numbers in linear time by multiplying a large integer to each real number such that all of them become integers. Then, the counting sort can be used to sort these integers in linear time. What is the problem of this method?
+
+標準答案：若將小數都乘上一個很大的數,某些數字可能會變成一個過大的整數,導致超過 int
+能儲存的位數,即integer overflow。
+將小數字變大後,key的範圍及所需的儲存空間也會變大,可能導致stack overflow。
+Counting Sort的時間複雜度並非O(n)而是O(n+k),其中n由輸入數字的數量決定,k
+則由key的範圍決定。當key的範圍大到超過O(n)時,counting sort的複雜度由k決
+定,可能會比comparison based sorting 的O(nlogn)來得更慢。
+
+學生答案：全部乘以大數, 很有可能overflow
+
+得分：2.0/5
+理由：學生答案只提到了「overflow」的問題，僅涉及乘以大數後導致整數溢位的情形，但沒有提及標準答案中關於key範圍急劇擴大，從而導致儲存空間爆炸（可能甚至造成stack overflow）以及Counting Sort時間複雜度實際上為O(n+k)，其中k過大將使得排序效率遠低於O(n)的問題。這些都是解題時的重要重點，因此學生答案只涵蓋一部分重點，依據評分規則給予4分。
+
+==================================================
+
+題號 2a:
+題目內容：T(n) = 2T(n/4) + T(2n/3) + cn, where c is a constant.
+
+標準答案：T(n) = 2T(n/4) + T(2n/3) + cn
+<FIGURE>A tree diagram is drawn. The root node is labeled T(n). It has three children nodes labeled T(n/4), T(n/4), and T(2n/3). Each of these children has children of their own, labeled T(n/16), T(n/16), T(n/16), T(n/16), T(4n/9), T(4n/9), T(4n/9), T(4n/9). The right side of the diagram includes the following annotations:
+T(n) -> cn
+T(n/4) -> 7/6 cn
+T(n/16) -> (7/6)^2 cn
+log_{3/2}n
+</FIGURE>
+T(n) ≤ cn + (7/6)cn + (7/6)^2cn + ...
+= ((7/6)^log_{3/2}n - 1)/(7/6 - 1) cn
+= 6 (n^log_{3/2}(7/6) - 1) cn
+= 6c (n^log_{3/2}(7/6) - 1)
+= O(n^log_{3/2}(7/6))
+
+學生答案：T(n)=2T(n/4)+T(2n/3)+cn
+[FIGURE]
+=> T(n) ≤ Σ_{i=0}^∞ ((7/6)^i)cn
+=> T(n) ≤ 1/(1-(7/6))cn
+=>T(n) = O(n)
+學生答案圖形：
+[A recursion tree is drawn. The root node is T(n). It branches into three children: T(n/4), T(n/4), and T(2n/3). The next level down has each of these nodes branching again, and the sums of the nodes in each level are marked as (7/6)n and (49/36)n]
+
+得分：0.0/10
+理由：學生答案在構造遞迴樹時雖然初步展示了類似標準答案中的分支，但在後續求和過程中存在根本性錯誤。他們使用了無限等比數列求和公式並得到 Σ((7/6)^i)cn，隨後求和得到 1/(1–7/6)cn，最終推出 T(n)=O(n)，這與標準答案中的 T(n)=O(n^(log₍₃⁄₂₎(7/6))) 完全不同。由於學生答案推導出的時間複雜度與標準答案核心結果不符，因此不給分。
+
+==================================================
+
+題號 5a:
+題目內容：Write the optimal substructure (recurrence) of computing LCS of k sequences, where k = 3
+What is the time complexity of computing LCS for k sequences of length n (5%).
+
+標準答案：Let the 3 sequences be A, B, and C.
+LCS (i, j, k) denotes the LCS of A[1.2,..., i], B[1,2,...,j] and C[1,2,..., k].
+LCS (i, j, k) =
+{
+0, if i=0 or j=0 or k=0
+LCS (i-1, j-1, k-1)+1, if A[i] = B[j] = C[k]
+max { LCS (i-1, j, k), LCS (i, j-1, k), LCS(i, j, k-1)}, otherwise
+}
+
+Time Complexity: O(n^3)
+
+學生答案：LCS(i,j,k) = { 0 if k=0
+LCS(i-1,j-1, k-1) + 1 if c_i == c_j == c_k else
+max(LCS(i-1,j,k), LCS(i,j-1,k), LCS(i,j,k-1))
+
+Time Complexity: O(n × n × ... n) => O(n^k)
+
+得分：8.0/10
+理由：學生答案涵蓋了主要的遞迴關係與時間複雜度的關鍵概念。遞迴關係中，學生描述了當三個字符相同時取 LCS(i-1,j-1,k-1)+1，否則取三種情況的最大值，這與標準答案的主要結構一致。但在base case部分，學生只列出了 "if k=0" 的情況，而標準答案要求當任一序列的長度為0時結果為0，即應該包含 i=0 或 j=0 的情況，這部分不夠完整。此外，時間複雜度部分學生給出的 O(n^k) 是正確的，當 k = 3 時即為 O(n^3)。因此，儘管答案大體相符，但在 base case 的完整性上略有欠缺，因此評分為8分。
+
+==================================================
+
+題號 5b:
+題目內容：Mr. Smart claimed that the LCS of three sequences can be obtained by first computing LCSs of any two sequences (say LCS_{12}), and then compute LCS of LCS_{12} and the remaining sequence. What's the bug of this method? Give an example.
+
+標準答案：先計算字串A,B的LCS時,可能找到一個比A,B,C的LCS更長的
+共同子序列,此時再拿這個子序列和C比時,就可能錯過最佳解。
+ex: A = kirari live
+B = livekirari
+C = live
+LCS (A,B) = kirari
+LCS ("kirari", C) = i
+但LCS(A,B,C) = live,此方法不可行
+
+學生答案：set i = "HELWOR"
+j = "HELOW"
+k = "HEO"
+LCS(i,j,k) = "HEO" => 字串 i,j 的最佳解 不一定是 i,j,k 的最佳解
+LCS(LCS(i,j),k) = "HE"
+
+得分：5.0/5
+理由：學生答案指出了核心問題，即用兩個序列的最佳解來求與第三個序列的LCS可能會丟失真正的三序列LCS。學生通過舉例說明了LCS(i, j, k)與LCS(LCS(i, j), k)產生不同結果，與標準答案中說明“先計算兩序列LCS可能會找到一個比三序列LCS更長的共同子序列”完全契合，因此給予10分。
+
+==================================================
+
+題號 3:
+題目內容：Prove that an n-element heap has at most [n/2^{h+1}] nodes at height h.
+
+標準答案：使用數學歸納法
+當h=0, ∴heap tree 是 binary tree
+∴最多有⌈n/2^(h+1)⌉ 個nodes在第0層.
+⌈n/2^(0+1)⌉ = ⌈n/2⌉ 成立.
+設h=k, 最多有⌈n/2^(k+1)⌉ 個 nodes 在第k層成立.
+則h=k+1時, 最多有 ⌈(n/2^(k+1))/2⌉ = ⌈n/2^(k+1+1)⌉ 個 nodes 在第k+1層,
+與公式 ⌈n/2^(h+1)⌉ 相符,故得證.
+```
+```
+
+學生答案：heap tree 是二元樹
+∴ leaf nodes 最多有 n/2 個
+h=0, ⌈n/(2^(0+1))⌉ = n/2
+h=k, ⌈n/(2^(k+1))⌉
+h= k+1, ⌈n/(2^(k+1))/2⌉ = ⌈n/(2^(k+1)×2)⌉=> ⌈n/(2^(k+1))⌉與公式相符 => 由數學歸納法證明此題論述為正確
+
+Here are the answers extracted from the provided text:
+
+得分：8.0/10
+理由：學生答案基本上採用了與標準答案一致的歸納法思路，即先驗證基底情形（h=0時有約 n/2 個節點），再利用假設 h=k 成立，考慮 h=k+1 時節點數除以2來完成歸納。然而，學生的論述較為簡略，未充分展開歸納假設的細節，且在 h=k+1 的步驟中有符號與指數表示上的不夠嚴謹（例如最終應表達為 ⌈n/2^(k+2)⌉，但敘述中略有混淆）。因此雖然重點大部分與標準答案相符，但細節上的不夠完善使得得分為8分。
+
+==================================================
+
+總分：43.0

@@ -1,0 +1,6 @@
+openai>=0.28.0
+google-generativeai
+pillow
+pymupdf
+tenacity
+python-dotenv 

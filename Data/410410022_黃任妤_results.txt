@@ -1,0 +1,583 @@
+
+題號 5c:
+題目內容：Given a string, find the longest subsequence occurring at least twice in the string, requiring
+their indices must not overlap. e.g., Given ATACTCGAG, the answer is 4 since ATCG occurs twice
+and their indices (i.e., (1,2,4,7) and (3,5,6,9)) do not overlap. Describe a dynamic programming
+(recurrence) for this problem. Illustrate a bottom-up DP using the string ATACTCGAG.
+
+標準答案：計算一個給定字符串中至少出現兩次的最長子序列,且要求它們的索引不能重
+疊的問題,可以通過動態規劃遞迴來解決:
+下面描述了動態規劃的遞迴關係,以及使用bottom-up 的方法對字符串
+"ATACTCGAG"進行動態規劃。
+遞迴關係:
+假設 dp[i][j]表示字符串中以索引i和j結尾的最長重複子序列的長度。
+我們可以使用以下遞迴關係來填充 dp數組:
+如果字符 s[i] 等於字符s[j]且i不等於j,則 dp[i][j] = dp[i-1][j-1] +1。
+否則,dp[i][j] = max(dp[i-1][j], dp[i][j-1])。
+bottom-up 的動態規劃:
+我們可以使用 bottom-up的方法來填充dp數組。首先初始化dp數組為零。然
+後遍歷字符串中的每對字符,根據上述遞迴關係來更新 dp數組。
+下面是對字符串 "ATACTCGAG" 的bottom-up 的動態規劃過程:
+初始時,dp 數組為:
+[TABLE]
+接著,遍歷字符串中的每對字符:
+
+```
+（續）
+字符 'A' 與字符'T'不相等,因此dp[1][0] = max(dp[0][0], dp[1][1]) = 0。
+字符 'T' 與字符'A'不相等,因此 dp[2][1] = max(dp[1][1], dp[2][2]) = 0。
+字符 'A' 與字符 'C' 不相等,因此 dp[3][2] = max(dp[2][2], dp[3][3]) = 0。
+依此類推,我們填充整個dp數組,最後找到dp數組中的最大值,即為最長重
+複子序列的長度。在這個例子中,最終dp[1][7] = dp[3][9] = 4 (ATCG 出現第二
+次),最長重複子序列的長度為4。
+標準答案表格：
+|   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|
+|   | A | T | A | C | T | C | G | A | G |
+| 1 | A | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 2 | T | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 3 | A | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 4 | C | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 5 | T | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 6 | C | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 7 | G | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 8 | A | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 0 | G | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+學生答案：① Recurrence
+Let the given sequence be S.
+dp (i,j) = 
+{
+0, if i=0 or j = 0
+dp(i-1, j-1)+1, if s[i] = s[j] and i ≠ j
+max { dp (i-1,j), dp(i,j-1)}, otherwise
+
+② Bottom-up DP
+[TABLE]
+=> Print in reverse order: ATCG
+```
+學生答案表格：
+|   | j   | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  |
+|---|-----|----|----|----|----|----|----|----|----|----|----|
+| i | S_j | A  | T  | A  | C  | T  | C  | G  | A  | G  |
+| 0 | S_i | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  | 0  |
+| 1 | A   | 0  | 0  | 0  | 1  | 1  | 1  | 1  | 1  | 1  | 1  |
+| 2 | T   | 0  | 0  | 0  | 1  | 1  | 2  | 2  | 2  | 2  | 2  |
+| 3 | A   | 0  | 1  | 1  | 1  | 1  | 2  | 2  | 2  | 3  | 3  |
+| 4 | C   | 0  | 1  | 1  | 1  | 1  | 2  | 3  | 3  | 3  | 3  |
+| 5 | T   | 0  | 1  | 2  | 2  | 2  | 2  | 3  | 3  | 3  | 3  |
+| 6 | C   | 0  | 1  | 2  | 2  | 3  | 3  | 3  | 3  | 3  | 3  |
+| 7 | G   | 0  | 1  | 2  | 2  | 3  | 3  | 3  | 3  | 3  | 4  |
+| 8 | A   | 0  | 1  | 2  | 3  | 3  | 3  | 3  | 3  | 4  | 4  |
+| 9 | G   | 0  | 1  | 2  | 3  | 3  | 3  | 3  | 4  | 4  | 4  |
+
+得分：10.0/10
+理由：學生答案正確給出了動態規劃的遞迴式，與標準答案中的描述一致，包含了基礎條件（i＝0或j＝0時dp值為0）的處理，以及在s[i]＝s[j]且i≠j時使用dp(i-1,j-1)+1的情況，否則取dp(i-1,j)與dp(i,j-1)的較大值。
+
+==================================================
+
+題號 4:
+題目內容：Mr. Stupid claims we can sort n real numbers in linear time by multiplying a large integer to each
+real number such that all of them become integers. Then, the counting sort can be used to sort these integers
+in linear time. What is the problem of this method?
+
+標準答案：Mr. Stupid claims we can sort n real numbers in linear time by multiplying a large integer to each real number such that all of them become integers. Then, the counting sort can be used to sort these integers in linear time. What is the problem of this method?
+將每個實數都乘以一個大整數以轉換成整數的方法可能會導致數據溢出。如果原始的實數數值非常大,將其乘以一個大整數後,可能會超出表示範圍,進而導致溢出錯誤。
+其次,即使假設數據不會溢出,將每個實數轉換成整數也可能會導致精度有問題。因為將實數轉換為整數會截斷小數部分,這樣可能會導致排序結果不準確。
+最後,即使忽略溢出和精度丟失的問題,使用計數排序來排序這些大整數也不一定會在線性時間內完成。計數排序通常用於整數排序,當整數的範圍很小且比較集中時才能夠達到線性時間的排序。但是在這種情況下,由於我們將實數轉換為整數後,整數的範圍可能會變得非常大,使得計數排序的效率大大降低。
+
+學生答案：若將小數都乘上一個很大的數,某些數字可能會變成一個過大的整數,導致超過 int
+能儲存的位數,即integer overflow。
+將小數字變大後,key的範圍及所需的儲存空間也會變大,可能導致stack overflow。
+Counting Sort的時間複雜度並非O(n)而是O(n+k),其中n由輸入數字的數量決定,k
+則由key的範圍決定。當key的範圍大到超過O(n)時,counting sort的複雜度由k決
+定,可能會比comparison based sorting 的O(nlogn)來得更慢。
+
+得分：4.0/5
+理由：學生答案正確指出了數據溢出以及由於 key 的範圍增大而使計數排序效能下降的問題，這與標準答案中提到的數據溢出問題和計數排序在大範圍下無法達到線性時間的觀點相符。但學生答案未提及轉換實數為整數時可能導致的精度問題，因此只覆蓋了重點中的大部分，而非全部。故綜合評定得分為8分。
+
+==================================================
+
+題號 5a:
+題目內容：Write the optimal substructure (recurrence) of computing LCS of k sequences, where k = 3
+(5%). What is the time complexity of computing LCS for k sequences of length n (5%).
+
+標準答案：計算k個序列的最長公共子序列(LCS)的最佳子結構(recurrence)可描述為
+以下形式,當k=3時:
+
+假設我們有三個序列 S1、S2和S3,它們的長度分別為nl、n2和n3。
+我們定義 dp[i][j][k]為三個序列 S1[0..i-1]、S2[0..j-1] 和S3[0..k-1]的LCS 長度。
+則我們可以使用以下遞迴關係來填充dp數組:
+如果 S1[i-1] = S2[j-1] = S3[k-1],則dp[i][j][k] = dp[i-1][j-1][k-1] +1。
+否則,dp[i][j][k] = max(dp[i-1][j][k],dp[i][j-1][k], dp[i][j][k-1])。
+這個遞迴關係表示,在考慮第i、j和k個字符時,我們比較它們是否相等。如
+果相等,則LCS 長度增加1,並且我們考慮前一個字符時的LCS長度;如果不
+相等,則我們將LCS長度更新為前一個字符的LCS長度中的最大值。
+對於計算k個序列的長度為n的最長公共子序列,其時間複雜度為 O(n^3)。
+
+學生答案：Let the 3 sequences be A, B, and C.
+LCS (i, j, k) denotes the LCS of A[1.2,..., i], B[1,2,...,j] and C[1,2,..., k].
+LCS (i, j, k) =
+{
+0, if i=0 or j=0 or k=0
+LCS (i-1, j-1, k-1)+1, if A[i] = B[j] = C[k]
+max { LCS (i-1, j,k), LCS (i, j-1, k), LCS(i, j, k-1)}, otherwise
+Time Complexity: O(n^3)
+
+得分：10.0/10
+理由：學生答案準確地描述了3個序列LCS問題的遞迴關係，與標準答案重點一致。學生給出了基本情況（當任一序列長度為0時返回0）、相等時的更新規則（即三個序列當前字符相等時，結果加1）以及不相等時取三個子問題最大值的情況，同時指出了時間複雜度為O(n³)，這與標準答案完全一致。
+
+==================================================
+
+題號 5b:
+題目內容：Mr. Smart claimed that the LCS of three sequences can be obtained by first computing LCSs of
+any two sequences (say LCS_{12}), and then compute LCS of LCS_{12} and the remaining sequence. What's
+the bug of this method? Give an example.
+
+標準答案：Mr. Smart 的方法存在一個錯誤,這是因為LCS12和剩餘序列之間的LCS 不一
+定是整體的LCS。考慮以下示例:序列A為"ABCD",序列B為"ACBD",序
+列C為"ADBC"。根據 Mr. Smart的方法,我們首先計算序列A和B的LCS,
+得到"ABD"。然後計算"ABD"和序列C的LCS,但是"ABD"和序列C的LCS
+是"AD",與序列A、B、C的LCS "ABD"不同。因此,Mr. Smart的方法不適
+用於找到k個序列的整體LCS。
+
+學生答案：先計算字串A,B的LCS時,可能找到一個比A,B,C的LCS更長的
+共同子序列,此時再拿這個子序列和C比時,就可能錯過最佳解。
+ex: A = kirari live
+B = livekirari
+C = live
+LCS (A,B) = kirari
+LCS ("kirari", C) = i
+但LCS(A,B,C) = live,此方法不可行
+
+得分：5.0/5
+理由：學生答案正確指出了 Mr. Smart 方法的本質問題——先求兩個序列的 LCS 可能得到一個比真正的三序列 LCS 更長的共同子序列，導致與第三個序列求 LCS 時失去了最佳解。這與標準答案提出的重點一致，且學生還提供了具體反例加以說明，因此滿足題目要求。
+
+==================================================
+
+題號 2a:
+題目內容：T(n) = 2T(n/4) + T(2n/3) + cn, where c is a constant.
+
+標準答案：T(n) = 2T(n / 4) + T((2/3)n) + cn, where c is a constant.
+
+學生答案：T(n) = 2T(n/4)+T(n/3)+cn
+
+[FIGURE]
+=> cn
+=> 7/6 cn
+=> (7/6)^i cn
+（續）
+T(n) ≤ cn + (7/6)cn + (7/6)^2 cn + ...
+= ((7/6)^(log_(3/2) n) - 1) / (7/6 - 1) cn
+= 6(n^(log_(3/2) (7/6)) - 1) cn
+= 6c(n^(log_(3/2) (7/6)) - 1)
+= O(n^(log_(3/2) (7/6)))
+學生答案圖形：
+[A tree diagram. The root node is labeled T(n). It has three children nodes, labeled T(n/4), T(n/4), and T(n/3). Each of the T(n/4) node has two children. Each of the T(n/3) node has one children.]
+
+得分：0.0/10
+理由：學生答案將原題中的 T(2n/3) 錯誤地寫成了 T(n/3)，這是一個關鍵性的差異，導致後續分析與標準答案的遞迴結構與求解方法均不相符。學生的推導（包括遞迴樹構造和最終複雜度推導）都是基於錯誤的遞迴式，與標準答案的主要重點完全不同，因此給予0分。
+
+==================================================
+
+題號 7:
+題目內容：Consider the following six activities with (start time, finish time, and value): (2, 4, 3), (5, 5, 5), (3,
+4, 2), (1, 4, 3), (1, 3, 1), (3, 5, 4). Illustrate a dynamic programming algorithm for computing the mutually-
+exclusive subset of activities of maximum total values using the above example.
+
+標準答案：Consider the following six activities with (start time, finish time, and value): (2, 4, 3), (5, 5, 5), (3, 4, 2), (1, 4, 3), (1, 3, 1), (3, 5, 4). Illustrate a dynamic programming algorithm for computing the mutually exclusive subset of activities of maximum total values using the above example.
+使用動態規劃算法來計算具有最大總價值的互斥活動子集。
+以下是對於給定活動的動態規劃算法:
+首先,將活動按照結束時間進行排序,確保每次選擇的活動是不衝突的。
+然後,定義一個dp數組,其中 dp[i]表示在考慮前i個活動時的最大總價值。
+```
+（續）
+使用遞迴關係來填充這個數組。
+遞迴關係如下:
+如果第i個活動是第一個活動(即沒有其他活動與之相互排斥),則dp[i]等於
+第i個活動的價值。
+否則,對於每個結束時間早於第i個活動的活動j,我們可以計算 dp[i] =
+max(dp[i], dp[j] + value[i])。
+最後,dp 數組中的最大值就是所求的相互排斥的活動子集的最大總價值。
+下面是範例:
+#include <stdio.h>
+// 定義活動結構
+struct Activity {
+int start;
+int finish;
+int value;
+};
+// 按結束時間遞增排序
+void sortActivities(struct Activity activities[], int n) {
+for (int i = 0; i < n - 1; i++) {
+for (int j = 0; j < n - i - 1; j++) {
+if (activities[j].finish > activities[j+1].finish) {
+//交換活動
+struct Activity temp = activities[j];
+activities[j] = activities[j+1];
+activities[j+1] = temp;
+}
+}
+}
+}
+// 動態規劃算法計算最大總價值
+int dynamicProgramming(struct Activity activities[], int n) {
+// 將活動按結束時間遞增排序
+sortActivities(activities, n);
+```
+（續）
+}
+
+// 初始化 dp 數組
+int dp[n];
+for (int i = 0; i < n; i++) {
+dp[i] = activities[i].value;
+}
+// 填充 dp 數組
+for (int i = 1; i < n; i++) {
+for (int j = 0; j < i; j++) {
+if (activities[j].finish <= activities[i].start) {
+dp[i] = (dp[i] > dp[j] + activities[i].value) ? dp[i] : dp[j] + activities[i].value;
+}
+}
+}
+//找到最大總價值
+int maxTotalValue = 0;
+for (int i = 0; i < n; i++) {
+if (dp[i] > maxTotalValue) {
+maxTotal Value = dp[i];
+}
+}
+return maxTotal Value;
+}
+
+int main() {
+// 活動列表
+struct Activity activities[] = {
+{2, 4, 3},
+{5, 5, 5},
+{3, 4, 2},
+{1, 4, 3},
+{1, 3, 1},
+{3, 5, 4}
+};
+
+```
+（續）
+}
+// 活動數量
+int n = sizeof(activities) / sizeof(activities[0]);
+// 計算最大總價值
+int maxTotalValue = dynamicProgramming(activities, n);
+printf("最大總價值: %d\n", maxTotalValue);
+return 0;
+}
+這個動態規劃算法的時間複雜度取決於排序活動的時間複雜度和填充 dp數組的
+時間複雜度。
+排序活動:對活動按結束時間進行排序的時間複雜度 O(n log n) (快速排序),
+其中 n 是活動的數量。
+填充 dp 數組: 填充 dp 數組的時間複雜度為 O(n^2), 因為我們需要對每個活動 j
+找到結束時間早於當前活動的所有活動 j 進行比較。
+因此, 整個算法的時間複雜度為 O(n^2 + n log n)。 在最壞的情況下, 它可以簡化
+為 O(n^2), 因為排序的時間複雜度優於填充 dp 數組的時間複雜度。
+```
+
+學生答案：Sort by the finish time.
+Let H(i) = max{l = {1, 2, ..., i-1} | f_l ≤ s_i}
+Let A(i) = max{A(i-1), A(H(i)) + v_i} (A(i) = max value for activity 1 to i)
+[TABLE]
+⇒ maximum value = 10
+學生答案表格：
+| activity | 1 | 2 | 3 | 4 | 5 | 6 |
+|----------|---|---|---|---|---|---|
+| start    | 1 | 1 | 2 | 3 | 3 | 5 |
+| finish   | 3 | 4 | 4 | 4 | 5 | 5 |
+| value    | 1 | 3 | 3 | 2 | 4 | 5 |
+| H(i)     | 0 | 0 | 0 | 1 | 1 | 5 |
+| A(i)     | 1 | 3 | 3 | 4 | 5 | 10 |
+
+得分：10.0/10
+理由：學生答案抓住了題目的重點——先按完成時間排序，定義並計算一個表示在前 i 個活動中最大總價值的動態規劃遞推式。他們使用 H(i) 表示與第 i 個活動前不衝突的活動中最後一個活動的索引，並定義 A(i)=max{A(i-1), A(H(i)) + v_i}，與標準答案中的 dp 遞推公式本質相同。
+
+==================================================
+
+題號 1:
+題目內容：Suppose you are asked to implement the n-th Fibanacci number using recursion only (i.e., no loop
+implementation)? How to avoid stack overflow for large n?
+
+標準答案：Suppose you are asked to implement the n-th Fibanacci number using
+recursion only (i.e., no loop implementation)? How to avoid stack overflow for large
+n?
+使用遞迴實現第n個費波那契數,可定義一個遞迴函數,該函數返回第n個費
+波那契數。遞迴過程中,每次調用函數時,我們會對第n-1和n-2個費波那契
+數再次調用同一函數。但是,對於大的數n,使用純遞迴的方式容易導致溢出
+問題,因為每一次函數調用都會佔用堆疊空間。
+為了避免這個問題,可以採用記憶化遞迴(Memoization)的方法。具體來說,
+可以使用一個數組或哈希表來保存之前計算過的費波那契數值,當需要計算某
+個費波那契數時,首先查找是否已經計算過,如果已經計算過,直接返回結果,
+否則進行遞迴計算。這樣可以避免重複計算,同時減少遞迴深度,從而降低堆
+疊空間的使用量。
+下面是使用記憶化遞迴的C實作:
+#include <stdio.h>
+#define MAX 100
+int memory[MAX];
+int fibonacci(int n) {
+if (n <= 1) {
+return n;
+}
+}
+if (memo[n] != -1) {
+return memory[n];
+}
+return memory[n] = fibonacci(n - 1) + fibonacci(n - 2);
+int main() {
+int n = 50; // 要計算的費波那契數的索引
+for (int i = 0; i < MAX; i++) {
+}
+memory[i] = -1;
+printf("第%d個費波那契數為%d\n", n, fibonacci(n));
+return 0;
+
+學生答案：使用tail recursion:
+int Fibl int n, int a, int b) {
+if (n == 0)
+return a;
+return Fib (n-1, b, a+b);
+}
+
+得分：4.0/10
+理由：標準答案的重點在於利用記憶化遞迴（memoization）來避免重複計算及過深的遞迴層級造成堆疊溢出，而學生答案則使用尾遞迴（tail recursion）的方式，這是一種不同的技巧。雖然尾遞迴能在具備尾呼叫優化（tail call optimization）的情況下降低堆疊使用（使其相當於迴圈），但它並未直接解決重複計算問題，而且該解法與標準答案的重點完全不同，只涵蓋了避免堆疊溢出的一個思路，因此給予4分。
+
+==================================================
+
+題號 5d:
+題目內容：Compute the Longest Palindrome Subsequence (LPS) in any sequence using dynamic
+programming. Given a string "character," the LPS is "carac." You should write down the recurrence
+and bottom-up computation.
+
+標準答案：要計算任何序列的最長回文子序列(Longest Palindrome Subsequence,LPS),
+可以使用動態規劃。
+以下是動態規劃的遞迴關係和bottom-up 的計算過程:
+遞迴關係:
+假設 dp[i][j]表示字符串中從索引i到索引」的子串的最長回文子序列的長度。
+我們可以使用以下遞迴關係來填充dp數組:
+如果字符 s[i] 等於字符s[j],則dp[i][j] = dp[i+1][j-1]+2。
+如果字符 s[i] 不等於字符s[j],則dp[i][j] = max(dp[i+1][j], dp[i][j-1])。
+bottom-up 的動態規劃:
+使用 bottom-up 的方法來填充 dp數組。首先初始化 dp數組為單個字符的長度
+為1,即dp[i][i] = 1。然後遍歷字符串中的每個子串的長度,根據上述遞迴關係
+來更新 dp 數組。
+下面是對字符串"character"的bottom-up的動態規劃過程:
+初始時,dp 數組為:(一個長度為1的字串本身就是迴文字串。)
+[TABLE]
+接著,遍歷字符串中的每個子串的長度:
+```
+```
+標準答案表格：
+|   |   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|---|
+|   |   | c | h | a | r | a | c | t | e | r |
+| 1 | c | 1 |   |   |   |   |   |   |   |   |
+| 2 | h |   | 1 |   |   |   |   |   |   |   |
+| 3 | a |   |   | 1 |   |   |   |   |   |   |
+| 4 | r |   |   |   | 1 |   |   |   |   |   |
+| 5 | a |   |   |   |   | 1 |   |   |   |   |
+| 6 | c |   |   |   |   |   | 1 |   |   |   |
+| 7 | t |   |   |   |   |   |   | 1 |   |   |
+| 8 | e |   |   |   |   |   |   |   | 1 |   |
+| 0 | r |   |   |   |   |   |   |   |   | 1 |
+
+學生答案：(d) LPS即原序列和其反轉序列的LCS
+原序列S=character
+反轉序列Ś=retcarahc
+① Recurrence 計算序列S和S的LCS
+dp(i,j) = { 0, if i=0 or j=0
+dp(i-1,j-1)+1, if s[i] = s[j]
+max { dp(i-1,j), dp(i,j-1)}, otherwise *
+
+② Bottom-up
+[TABLE]
+⇒ carac *
+學生答案表格：
+| i | j | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+|   | S_j | c | h | a | r | a | c | t | e | r |   |
+| 0 | S_i | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 1 | r | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 |
+| 2 | e | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 2 | 2 |
+| 3 | t | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 2 | 2 | 2 |
+| 4 | c | 0 | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 2 | 2 |
+| 5 | a | 0 | 1 | 1 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
+| 6 | r | 0 | 1 | 1 | 2 | 3 | 3 | 3 | 3 | 3 | 3 |
+| 7 | a | 0 | 1 | 1 | 2 | 3 | 4 | 4 | 4 | 4 | 4 |
+| 8 | c | 0 | 1 | 2 | 2 | 3 | 4 | 4 | 4 | 4 | 4 |
+| 9 | t | 0 | 1 | 2 | 2 | 3 | 4 | 5 | 5 | 5 | 5 |
+
+得分：10.0/10
+理由：學生答案指出 LPS 可轉化為求原序列與其反轉序列的 LCS，並給出了相應的遞迴公式和 bottom-up 的 DP 表格，最終求得結果 "carac"。雖然學生使用了 LCS 的角度而非直接使用 dp[i][j]（定義為從 i 到 j 區間內的 LPS）的遞迴關係，但這是一個常見且正確的替代方法。學生答案在遞迴及 bottom-up 過程中涵蓋了題目要求的重點，因此給予滿分。
+
+==================================================
+
+題號 3:
+題目內容：Prove that an n-element heap has at most [n/2^{h+1}] nodes at height h.
+
+標準答案：Prove that an n-element heap has at most n/(2(h+1)) nodes at height h.
+使用數學歸納法來證明這一點。
+基礎情況:當h=0時,這意味著在堆的最底層,即葉子節點所在的層級。在這種情況下,所有的葉子節點都是在同一個層級,每個葉子節點都是一個高度為0的節點。一個n元素的堆有n個葉子節點,因此在高度h=0的情況下,有n/(2(0+1)) = n/2 個節點。這是基礎情況。
+假設對於某個正整數k,當h=k時,一個n元素的堆最多有n/(2(k+1)) 個節點。
+接下來,假設高度為k+1的節點數量是 n/(2(k+2))。可以通過觀察堆的結構來進行證明。在高度為k+1的層級上,每個節點都有兩個子節點,這意味著在高度為k的層級上,每個節點都有2個父節點。
+因此,在高度為k的層級上,每個節點都負責其下層的兩倍節點的數量。由於假設高度為k的層級上有n/(2(k+1))個節點,所以高度為k+1的層級上的每個節點都負責其下層的n/(2(k+1)) *2 = n/(2(k+2)) 個節點的數量。
+因此,通過數學歸納法,證明了對於所有的正整數h,一個n元素的堆最多有n/(2(h+1)) 個節點。
+
+學生答案：使用數學歸納法
+當 h = 0, ∴ heap tree 是 binary tree
+∴ 最多有 [n/(2^(h+1))] = [n/(2^(0+1))] = [n/2] 個 nodes 在第0層成立.
+設 h = k, 最多有 [n/(2^(k+1))] 個 nodes 在第 k 層成立.
+則 h = k+1 時, 最多有 [( [n/(2^k)] ) / 2] = [n/(2^(k+1))] 個 nodes 在第k+1層, 與公式 [n/(2^(h+1))] 相符, 故得證.
+```
+```
+
+得分：4.0/10
+理由：學生答案確實嘗試使用數學歸納法，並在形式上給出了基礎情況（h＝0時有 [n/(2^(0+1))]＝n/2 個節點）以及歸納步驟。但重點在於標準答案要求的結果是 n/(2(h+1))（也就是分母为2乘以(h+1)），而學生答案得到的結果是 n/(2^(h+1))（分母为2的(h+1)次方），兩者數學意義完全不同。除此之外，學生在歸納步驟中的論證也過於簡略，未能充分闡明如何從第 k 層到第 k+1 層的轉換過程。基於這些主要差異，學生答案只符合標準答案內容的一部分，因此給予4分。
+
+==================================================
+
+題號 6:
+題目內容：Consider the knapsack problem of n items and W pack size. Suppose the pack/item sizes are very
+large and the item values are very small. Give a dynamic programming for solving this problem. Illustrate
+your algorithm using the following example (W=500).
+[TABLE]
+題目表格：
+| Item | Weight | Value |
+|---------|---------|---------|
+| 1   | 100   | 1   |
+| 2   | 200   | 2   |
+| 3   | 250   | 4   |
+| 4   | 300   | 5   |
+
+標準答案：Consider the knapsack problem of n items and W pack size. Suppose the pack/item
+sizes are very large and the item values are very small. Give a dynamic programming
+for solving this problem. Illustrate your algorithm using the following example
+(W=500).
+[TABLE]
+在背包容量為W的情況下,解決n個物品的背包問題,可以使用動態規劃算法。
+令 dp[i][w] 表示在前i個物品中選擇使得重量不超過w的情況下的最大價值。
+則我們可以使用以下遞迴關係來計算 dp[i][w]:
+如果物品i的重量超過w,則dp[i][w] = dp[i-1][w],即不選擇物品i。
+否則,dp[i][w] = max(dp[i-1][w], dp[i-1][w-weight[i]] + value[i]),即在選擇和不
+選擇物品i中取最大值。
+接下來我們可以使用這個遞迴關係填充一個二維數組dp。最後,答案即為
+dp[n][W]。
+使用例子中的數據(W=500,物品數n=4)填充dp:
+dp = [
+```
+```
+（續）
+[0,0,0, ..., 0],
+[0,0,0, ..., 0],
+[0,0,0, ..., 0],
+[0,0,0, ..., 0],
+[0,0,0, ..., 0]
+]
+現在填充 dp[4][500]:
+對於物品1,重量為100,價值為1。因為100 <= 500,所以dp[1][100] = 1,其
+它dp[1][w] = 0。
+對於物品2,重量為200,價值為2。因為200<=500,所以 dp[2][200] = 2,其
+它dp[2][w] = 0。
+對於物品3,重量為250,價值為4。因為250 <= 500,所以dp[3][250]=4,其
+它dp[3][w] = 0。
+對於物品4,重量為300,價值為5。因為300<=500,所以dp[4][300]=5,其
+它dp[4][w] = 0。
+現在我們使用上面的遞迴關係來計算 dp[4][500]。例如,對於dp[4][500],我們
+可以通過比較 dp[3][500]和dp[3][500-300] +5來得到最大值。
+這樣填充 dp 數組直到得到dp[4][500],我們就能得到最大價值。
+以下是範例:
+#include <stdio.h>
+#define max(a, b) ((a) > (b) ? (a) : (b))
+// 定義最大物品數量和最大背包容量
+#define MAX_ITEMS 100
+#define MAX_WEIGHT 1000
+// 物品的重量和價值
+int weight[MAX_ITEMS] = {100, 200, 250, 300};
+int value[MAX_ITEMS] = {1, 2, 4, 5};
+// 動態規劃函數
+int knapsack(int n, int W) {
+int dp[MAX_ITEMS + 1][MAX_WEIGHT + 1];
+```
+標準答案表格：
+| Item | Weight | Value |
+|------|--------|-------|
+| 1    | 100    | 1     |
+| 2    | 200    | 2     |
+| 3    | 250    | 4     |
+| 4    | 300    | 5     |
+
+學生答案：6. ① Let V_i = value of the ith item.
+W_i = weight of the ith item.
+dp(i,j) = the minimum weight to achieve value j using the first i items.
+(1 ≤ i ≤ n, 0 ≤ j ≤ V, where V represents the sum of values.)
+dp(i,j)= { 0, if i=0 or j=0
+max { dp[i-1,j), dp(i-1, j-V_i) + W_i}, otherwise *
+
+②置表找出小於背包重量W=500的最大價值.
+[TABLE]
+⇒ value = 7 *
+學生答案表格：
+| i | j | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 |   | 0 | 100 | \ | \ | \ | \ | \ | \ | \ | \ | \ | \ | \ |
+| 2 |   | 0 | 100 | 200 | 300 | \ | \ | \ | \ | \ | \ | \ | \ | \ |
+| 3 |   | 0 | 100 | 200 | 300 | 250 | 350 | 450 | 550 | \ | \ | \ | \ | \ |
+| 4 |   | 0 | 100 | 200 | 300 | 450 | 300 | 400 | 500 | 600 | 550 | 650 | 750 | 810 |
+
+得分：10.0/10
+理由：學生答案提出了一個針對大重量小價值物品的替代動態規劃方法，採用了以“dp(i, j) = 前 i 個物品實現價值 j 時的最小重量”的狀態定義，這正是解決此問題的一種常見有效方法。該方法適用於物品價值較小、總價值的範圍有限的情況，與標準答案的思路相符。學生還利用表格展示了如何在容量限制 W=500 的情況下找出最大的可實現價值，最終得到的最佳值是7，並且能正確對應物品2和物品4（200＋300＝500，2＋5＝7）的組合。因此，學生答案在答題重點與細節上與標準答案基本一致，符合滿分標準。
+
+==================================================
+
+題號 2b:
+題目內容：T(n) = 2T(√n) + lgn (hint: you may replace n with other form)
+
+標準答案：T(n) = 2T(√n)+lgn. (hint: you may replace n with other form)
+(a)
+這個遞迴式的Big O複雜度是O(nlogn)。
+可以使用主定理 (Master Theorem) 來證明這一點。
+遞迴式的形式為T(n) = 2T(n/4) + T((2/3)n) + cn
+根據主定理,如果存在常數k>0和d>=0,使得:
+
+對於所有的n大於某一個n0,有T(n)<=knd,那麼T(n)的複雜度是O(nd)。
+如果T(n) <= knd對於某一個常數d>0以及一些正數ɛ>0成立,同時對於充分
+大的n,有T(n) >= knd,那麼T(n) 的複雜度是O(nd * log n)。
+
+對於遞迴T(n) = 2T(n/4) + T((2/3)n)+cn,可以看到第二項T((2/3)n)的規模比較
+大,所以可以忽略掉其他項。因此,將遞迴式簡化為T(n) = T((2/3)n) + cn。這
+個遞迴式符合主定理的第二種情況,其中d=1,因此複雜度為O(nd * log n) =
+O(n * log n)。
+將n替換為2^k,其中k = log2(n),這樣可以將遞迴式表示為 T(2^k) = 2T(2^(k/2)) + k。
+這就變成了形式類似合併排序的遞迴式。因此,我們可以使用主定理來解這個
+遞迴式。
+
+根據主定理,如果遞迴式具有形式 T(n) = aT(n/b) + f(n),其中a>=1,b>1,且
+f(n) 是漸進正的,那麼:
+
+如果f(n) = O(n^(logb(a-ε))),對於某個ε>0,那麼T(n) = O(n^(logb(a)))。
+如果f(n) = Θ(n^(logb(a))),那麼T(n) = O(n^(logb(a)) * log n)。
+如果f(n) = Ω(n^(logb(a+ε))),對於某個ɛ>0,且af(n/b) <= cf(n) 對於某個c<1和所
+有足夠大的n,那麼T(n) = Θ(f(n))。
+
+對於遞迴式 T(2^k) = 2T(2^(k/2)) + k, a = 2, b = 2, f(n) = k。因為k = log2(n),所以f(n)
+
+學生答案：Let k = lgn, n = 2^k
+T(n) = 2T(√n) + lgn
+=> T(2^k) = 2T(2^(k/2)) + k
+Let S(k) = T(2^k)
+S(k) = 2S(k/2) + k
+By Master Theorem, log_2 2 = 1 => S(k) = O(k log k)
+T(2^k) = O(k log k) => T(n) = O(log n log log n)
+
+得分：10.0/10
+理由：學生答案抓住了本題的核心思路——將 n 替換成 2^k（即令 k = log₂n），從而將遞迴式 T(n)= 2T(√n)+ log n 轉換為 S(k)=2S(k/2)+ k，再利用主定理求出 S(k)= O(k log k)，進而推出 T(n)= S(log n)= O(log n·log log n)。這正是標準答案所強調的關鍵證明步驟和方法，故給予滿分。
+
+==================================================
+
+總分：77.0
