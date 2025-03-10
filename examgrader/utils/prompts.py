@@ -159,24 +159,80 @@ class PromptManager:
 - 表格單元格中的文字可能有空格或大小寫的差異，只要內容基本相同即可
 - 重點在於表格傳達的信息是否正確，而非表格的確切格式
 """ if has_tables else ""
+
+        # Get the rubric for this question
+        rubric = question_data.get('rubric', '')
+        if not rubric or rubric.startswith('Failed to generate rubric'):
+            # Fallback to default scoring rules if no rubric is available
+            scoring_rules = """評分規則：
+- 如果學生答案與參考答案重點上完全相同，給10分。
+- 如果學生答案與參考答案重點上大部分相同，給8分。
+- 如果學生答案與參考答案重點上少部分相同，給4分。
+- 如果學生答案與參考答案重點上完全不同，給0分。
+- 若此題答案有證明(如證明時間複雜度)，請先考量此題目是否可能有多種證明方式。若有多種證明方式，學生答案之證明過程無需與參考答案證明過程完全一致，針對學生答案證明之合理性給與適當分數。"""
+        else:
+            scoring_rules = f"""評分標準：
+{rubric}
+
+注意事項：
+- 根據以上評分標準給分，總分為{question_data['score']}分
+- 可以給予部分分數，但不能超過各項標準的分數上限
+- 若學生的答案採用了不同但合理的方法，應根據其方法的正確性和完整性評分
+- 請詳細說明每個評分項目的得分情況"""
         
         prompt = f"""
-以下是題目與標準答案：
+以下是題目與參考答案：
 題目：{question_text}
 
-標準答案：{correct_text}
+參考答案：{correct_text}
 
 學生答案：{student_text}
 {table_instructions}
-評分規則：
-- 如果學生答案與標準答案重點上完全相同，給10分。
-- 如果學生答案與標準答案重點上大部分相同，給8分。
-- 如果學生答案與標準答案重點上少部分相同，給4分。
-- 如果學生答案與標準答案重點上完全不同，給0分。
-- 若此題答案有證明(如證明時間複雜度)，請先考量此題目是否可能有多種證明方式。若有多種證明方式，學生答案之證明過程無需與標準答案證明過程完全一致，針對學生答案證明之合理性給與適當分數。
+{scoring_rules}
 
-請參考題目說明與標準答案，抓出答題重點，依據上述規則給出分數，並說明詳細理由，並以以下格式回應：
+請根據以上題目，參考答案，和評分標準(Rubric)評分，並以以下格式回應：
 得分：<分數>
-理由：<理由>
+理由：<理由，請列出每個評分項目的得分和原因>
 """
         return prompt
+
+    @staticmethod
+    def get_rubric_generation_prompt(question_text: str, tables: list, figures: list, score: int) -> str:
+        """Get prompt for generating a rubric for a question
+        
+        Args:
+            question_text: The text of the question
+            tables: List of tables in the question
+            figures: List of figures in the question
+            score: The total score for the question
+            
+        Returns:
+            Formatted rubric generation prompt
+        """
+        # Format the question text with any tables or figures
+        formatted_question = question_text
+        for table in tables:
+            # If table is a string, use it directly; otherwise use to_markdown()
+            table_md = table if isinstance(table, str) else table.to_markdown()
+            formatted_question = formatted_question.replace('[TABLE]', table_md, 1)
+        for figure in figures:
+            formatted_question = formatted_question.replace('[FIGURE]', f"[Figure: {figure}]", 1)
+            
+        return f"""Create a detailed grading rubric for the following exam question worth {score} points.
+        
+Question:
+{formatted_question}
+
+Your task is to create a clear, fair, and comprehensive rubric that:
+1. Breaks down the total {score} points into specific scoring criteria
+2. Allocates points to different aspects of the expected answer
+3. Provides clear guidelines for what constitutes full, partial, or no credit
+4. Focuses on the key concepts and skills being tested on the question
+
+Format the rubric as a list of criteria with point allocations. For example:
+- Correct identification of X (3 pts)
+- Proper explanation of Y (4 pts)
+- Complete implementation of Z (3 pts)
+
+Response with the rubric only, no other text.
+"""

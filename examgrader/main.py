@@ -31,6 +31,8 @@ def main():
     parser.add_argument('--gemini-api-key', help='Gemini API key (overrides GEMINI_API_KEY in .env)')
     parser.add_argument('--openai-api-key', help='OpenAI API key (overrides OPENAI_API_KEY in .env)')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
+    parser.add_argument('--workers', type=int, default=8, help='Number of worker threads for parallel processing (default: 8)')
+    parser.add_argument('--force-rubrics', action='store_true', help='Force regeneration of rubrics even if they already exist')
     
     args = parser.parse_args()
 
@@ -52,7 +54,13 @@ def main():
 
     # Process files with PDF support
     logger.info(f"Parsing questions from {args.questions_file}")
-    questions, questions_json = parse_questions(args.questions_file, gemini_api_key)
+    questions, questions_json = parse_questions(
+        args.questions_file, 
+        gemini_api_key, 
+        openai_api_key, 
+        max_workers=args.workers,
+        force_regenerate_rubrics=args.force_rubrics
+    )
     logger.info(f"Saved parsed questions to {questions_json}")
     
     logger.info(f"Parsing correct answers from {args.correct_answers_file}")
@@ -70,12 +78,12 @@ def main():
     openai_api = OpenAIAPI(openai_api_key)
 
     grader = ExamGrader(openai_api)
-    results, total_score, max_possible_score = grader.grade_exam(questions, correct_answers, student_answers)
+    results, total_score, max_possible = grader.grade_exam(questions, correct_answers, student_answers)
     
     logger.info(f"Saving results to {args.output_file}")
-    grader.save_results(results, total_score, args.output_file)
+    grader.save_results(results, total_score, max_possible, args.output_file)
     
-    logger.info(f"Grading complete. Total score: {total_score}/{max_possible_score}")
+    logger.info(f"Grading complete. Total score: {total_score}/{max_possible}")
 
 if __name__ == '__main__':
     main()

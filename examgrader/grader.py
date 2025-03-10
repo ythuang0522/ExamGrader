@@ -64,49 +64,66 @@ class ExamGrader:
                        student_answers: Dict[str, Dict[str, Any]],
                        results: Dict[str, Any],
                        processed_parents: Dict[str, bool]) -> Tuple[float, float]:
-        """Grade a single question with thread safety.
+        """Grade a single question.
         
+        Args:
+            q_num: Question number
+            question_data: Question data dictionary
+            questions: Dictionary of all questions
+            correct_answers: Dictionary of correct answers
+            student_answers: Dictionary of student answers
+            results: Dictionary to store results
+            processed_parents: Dictionary to track processed parent questions
+            
         Returns:
-            Tuple of (score for this question, max possible score for this question)
+            Tuple of (earned score, max score)
         """
-        # Handle parent questions
-        if self._is_parent_question(q_num, questions):
-            if not processed_parents.get(q_num, False):  # Thread-safe dictionary access
-                self._verify_subproblem_scores(q_num, questions)
-                processed_parents[q_num] = True  # Thread-safe dictionary update
-                logger.info(f"Verified scores for parent question {q_num}")
+        # Skip if this is a parent question with subproblems - we'll grade those individually
+        if self._is_parent_question(q_num, questions) and not processed_parents.get(q_num, False):
+            processed_parents[q_num] = True
+            logger.info(f"Question {q_num} has subproblems, grading those individually")
             return 0, 0
-
-        # Grade the question
-        max_score = int(question_data['score'])
-        correct_ans = correct_answers.get(q_num, {
-            'text': "無標準答案",
-            'tables': [],
-            'figures': []
-        })
-        student_ans = student_answers.get(q_num, {
-            'text': "無學生答案",
-            'tables': [],
-            'figures': []
-        })
-
-        prompt = PromptManager.get_grading_prompt(question_data, correct_ans, student_ans)
+            
+        max_score = float(question_data['score'])
+        
+        # Check if we have both correct and student answers
+        if q_num not in correct_answers or q_num not in student_answers:
+            logger.warning(f"Missing {'correct' if q_num not in correct_answers else 'student'} answer for question {q_num}")
+            results[q_num] = {
+                'score': 0,
+                'max_score': max_score,
+                'reason': f"Missing {'correct' if q_num not in correct_answers else 'student'} answer",
+                'question': question_data['text'],
+                'correct_answer': correct_answers.get(q_num, {}).get('text', 'N/A'),
+                'student_answer': student_answers.get(q_num, {}).get('text', 'N/A'),
+                'rubric': question_data.get('rubric', 'No rubric available')
+            }
+            return 0, max_score
+            
+        # Generate grading prompt
+        prompt = PromptManager.get_grading_prompt(
+            question_data, correct_answers[q_num], student_answers[q_num]
+        )
+        
+        # Call API to grade
         score, reason = self.openai_api.grade_answer(prompt)
         
-        adjusted_score = (score / 10) * max_score
-
-        # No lock needed for results as each thread writes to a different key
+        # Ensure score doesn't exceed max
+        score = min(score, max_score)
+        
+        # Store results
         results[q_num] = {
-            'score': adjusted_score,
+            'score': score,
             'max_score': max_score,
             'reason': reason,
-            'question_data': question_data,
-            'correct_answer': correct_ans,
-            'student_answer': student_ans
+            'question': question_data['text'],
+            'correct_answer': correct_answers[q_num]['text'],
+            'student_answer': student_answers[q_num]['text'],
+            'rubric': question_data.get('rubric', 'No rubric available')
         }
-            
-        logger.info(f"Question {q_num}: {adjusted_score}/{max_score} - {reason}")
-        return adjusted_score, max_score
+        
+        logger.info(f"Question {q_num}: {score}/{max_score} - {reason}")
+        return score, max_score
 
     def grade_exam(self, questions: Dict[str, Dict[str, Any]], 
                    correct_answers: Dict[str, Dict[str, Any]], 
@@ -151,63 +168,37 @@ class ExamGrader:
         logger.info(f"Total Score: {total_score}/{max_possible_score}")
         return results, total_score, max_possible_score
     
-    def save_results(self, results: Dict[str, Any], total_score: float, output_file: str) -> None:
+    def save_results(self, results: Dict[str, Any], total_score: float, max_possible: float, output_file: str) -> None:
         """Save grading results to a file.
         
         Args:
             results: Dictionary of grading results
-            total_score: Total score achieved
-            output_file: Path to save the results
+            total_score: Total score earned
+            max_possible: Maximum possible score
+            output_file: Path to save results
         """
-        try:
-            with open(output_file, 'w', encoding='utf-8') as f:
-                for q_num, result in results.items():
-                    f.write(f"\n題號 {q_num}:\n")
-                    
-                    # Write question content
-                    question_data = result['question_data']
-                    f.write(f"題目內容：{question_data['text']}\n")
-                    if question_data.get('tables'):
-                        f.write("題目表格：\n")
-                        for table in question_data['tables']:
-                            table_md = table if isinstance(table, str) else table.to_markdown()
-                            f.write(table_md + "\n")
-                    if question_data.get('figures'):
-                        f.write("題目圖形：\n")
-                        for figure in question_data['figures']:
-                            f.write(f"[{figure}]\n")
-                            
-                    # Write correct answer
-                    correct_ans = result['correct_answer']
-                    f.write(f"\n標準答案：{correct_ans['text']}\n")
-                    if correct_ans.get('tables'):
-                        f.write("標準答案表格：\n")
-                        for table in correct_ans['tables']:
-                            table_md = table if isinstance(table, str) else table.to_markdown()
-                            f.write(table_md + "\n")
-                    if correct_ans.get('figures'):
-                        f.write("標準答案圖形：\n")
-                        for figure in correct_ans['figures']:
-                            f.write(f"[{figure}]\n")
-                            
-                    # Write student answer
-                    student_ans = result['student_answer']
-                    f.write(f"\n學生答案：{student_ans['text']}\n")
-                    if student_ans.get('tables'):
-                        f.write("學生答案表格：\n")
-                        for table in student_ans['tables']:
-                            table_md = table if isinstance(table, str) else table.to_markdown()
-                            f.write(table_md + "\n")
-                    if student_ans.get('figures'):
-                        f.write("學生答案圖形：\n")
-                        for figure in student_ans['figures']:
-                            f.write(f"[{figure}]\n")
-                    
-                    f.write(f"\n得分：{result['score']}/{result['max_score']}\n")
-                    f.write(f"理由：{result['reason']}\n")
-                    f.write("\n" + "="*50 + "\n")  # Separator between questions
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(f"總分: {total_score:.1f}/{max_possible:.1f}\n\n")
+            f.write("-" * 80 + "\n\n")
+            
+            # Sort question numbers naturally
+            sorted_questions = sorted(results.keys(), key=lambda x: [int(c) if c.isdigit() else c for c in re.findall(r'\d+|\D+', x)])
+            
+            for q_num in sorted_questions:
+                result = results[q_num]
+                f.write(f"題號: {q_num}\n")
+                f.write("\n問題:\n")
+                f.write(f"{result['question']}\n\n")
+                # Include rubric if available
+                if 'rubric' in result and result['rubric'] != 'No rubric available':
+                    f.write("\n評分標準:\n")
+                    f.write(f"{result['rubric']}\n")
+                f.write("\n標準答案:\n")
+                f.write(f"{result['correct_answer']}\n\n")
+                f.write("學生答案:\n")
+                f.write(f"{result['student_answer']}\n\n")
+                f.write(f"得分: {result['score']:.1f}/{result['max_score']:.1f}\n")
+                f.write(f"\n評分理由: {result['reason']}\n")
+                f.write("-" * 80 + "\n\n")
                 
-                f.write(f"\n總分：{total_score}\n")
-            logger.info(f"Results saved to {output_file}")
-        except Exception as e:
-            logger.error(f"Error saving results to {output_file}: {e}")
+        logger.info(f"Saved grading results to {output_file}")
