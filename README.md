@@ -9,6 +9,7 @@ ExamGrader is a Python application that uses AI to automatically extract questio
 - Grade student answers against correct answers using OpenAI API
 - Generate detailed grading reports with scores and reasons
 - Save intermediate JSON files for parsed questions and answers
+- Support for loading pre-parsed JSON files to skip extraction step
 
 ## Installation
 
@@ -37,15 +38,29 @@ Run the application with the following command:
 python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [--debug]
 ```
 
+The application supports both raw input files (PDF/text) and pre-parsed JSON files. When using JSON files, the extraction and parsing steps are skipped, making the process faster. JSON files are automatically detected by their `.json` extension.
+
 ### Arguments
 
-- `-q, --questions-file`: Path to the questions file (PDF or text)
-- `-c, --correct-answers-file`: Path to the correct answers file (PDF or text)
-- `-s, --student-answers-file`: Path to the student answers file (PDF or text)
+- `-q, --questions-file`: Path to the questions file (PDF, text, or JSON)
+- `-c, --correct-answers-file`: Path to the correct answers file (PDF, text, or JSON)
+- `-s, --student-answers-file`: Path to the student answers file (PDF, text, or JSON)
 - `-o, --output-file`: Optional: Path to save grading results (defaults to student_file_results.txt)
 - `--gemini-api-key`: Gemini API key (overrides GEMINI_API_KEY in .env)
 - `--openai-api-key`: OpenAI API key (overrides OPENAI_API_KEY in .env)
 - `--debug`: Enable debug logging
+
+### Input File Types
+
+The application accepts three types of input files:
+1. **PDF Files**: Requires Gemini API key for extraction
+2. **Text Files**: Plain text files following the specified format
+3. **JSON Files**: Pre-parsed files from previous runs (fastest option)
+
+When using JSON files, they must be in the format produced by the application's save_intermediate_json function. This is useful for:
+- Rerunning grading with different parameters without re-extracting content
+- Testing and debugging without API calls
+- Manually reviewing and adjusting parsed content
 
 ## Project Structure
 

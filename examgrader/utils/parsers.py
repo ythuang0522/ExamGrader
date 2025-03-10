@@ -1,6 +1,7 @@
 """Module for parsing exam data from various sources."""
 
 import re
+import json
 import logging
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
@@ -51,16 +52,26 @@ def parse_table(table_md: str) -> Optional[str]:
         return None
 
 def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
-    """Parse questions from either text file or PDF.
+    """Parse questions from either text file, PDF, or JSON.
     
     Returns a dictionary with question numbers as keys and dictionaries containing:
     - text: question text
     - score: question score
     - tables: list of TableData objects if present
     - figures: list of figure descriptions if present
-    """
-    questions = {}
     
+    If a JSON file is provided, it's assumed to be a previously saved intermediate
+    result that can be loaded directly without further processing.
+    """
+    questions = {}  # Initialize questions dictionary
+    
+    # Check if file is JSON (from save_intermediate_json)
+    if filepath.lower().endswith('.json'):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            questions = json.load(f)
+            logger.info(f"Loaded pre-parsed questions from JSON file: {filepath}")
+            return questions
+            
     # Check if file is PDF
     if filepath.lower().endswith('.pdf'):
         if not gemini_api_key:
@@ -127,15 +138,25 @@ def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Dict
     return questions
 
 def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True) -> Dict[str, Dict[str, Any]]:
-    """Parse answers from either text file or PDF.
+    """Parse answers from either text file, PDF, or JSON.
     
     Returns a dictionary with question numbers as keys and dictionaries containing:
     - text: answer text with [TABLE] and [FIGURE] placeholders
     - tables: list of TableData objects if present
     - figures: list of figure descriptions if present
-    """
-    answers = {}
     
+    If a JSON file is provided, it's assumed to be a previously saved intermediate
+    result that can be loaded directly without further processing.
+    """
+    answers = {}  # Initialize answers dictionary
+    
+    # Check if file is JSON (from save_intermediate_json)
+    if filepath.lower().endswith('.json'):
+        with open(filepath, 'r', encoding='utf-8') as f:
+            answers = json.load(f)
+            logger.info(f"Loaded pre-parsed {'correct' if is_correct_answer else 'student'} answers from JSON file: {filepath}")
+            return answers
+            
     # Check if file is PDF
     if filepath.lower().endswith('.pdf'):
         if not gemini_api_key:
