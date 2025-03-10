@@ -3,12 +3,13 @@
 import re
 import json
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass
 
 from examgrader.api.gemini import GeminiAPI
 from examgrader.extractors.questions import QuestionExtractor
 from examgrader.extractors.answers import AnswerExtractor
+from examgrader.utils.file_utils import save_intermediate_json
 
 logger = logging.getLogger(__name__)
 
@@ -51,17 +52,26 @@ def parse_table(table_md: str) -> Optional[str]:
         logger.error(f"Error parsing markdown table: {e}")
         return None
 
-def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Dict[str, Dict[str, Any]]:
-    """Parse questions from either text file, PDF, or JSON.
+def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Tuple[Dict[str, Dict[str, Any]], str]:
+    """Parse questions from either PDF or JSON.
     
-    Returns a dictionary with question numbers as keys and dictionaries containing:
-    - text: question text
-    - score: question score
-    - tables: list of TableData objects if present
-    - figures: list of figure descriptions if present
+    Returns a tuple containing:
+    1. A dictionary with question numbers as keys and dictionaries containing:
+       - text: question text
+       - score: question score
+       - tables: list of TableData objects if present
+       - figures: list of figure descriptions if present
+    2. Path to the saved JSON file
     
     If a JSON file is provided, it's assumed to be a previously saved intermediate
     result that can be loaded directly without further processing.
+    
+    Args:
+        filepath: Path to either a PDF file to process or a JSON file with cached results
+        gemini_api_key: Required API key for processing PDF files
+        
+    Raises:
+        ValueError: If file is not PDF/JSON or if Gemini API key is missing for PDF processing
     """
     questions = {}  # Initialize questions dictionary
     
@@ -70,9 +80,9 @@ def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Dict
         with open(filepath, 'r', encoding='utf-8') as f:
             questions = json.load(f)
             logger.info(f"Loaded pre-parsed questions from JSON file: {filepath}")
-            return questions
+            return questions, filepath
             
-    # Check if file is PDF
+    # Handle PDF files
     if filepath.lower().endswith('.pdf'):
         if not gemini_api_key:
             raise ValueError("Gemini API key required for PDF processing")
@@ -82,9 +92,7 @@ def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Dict
         content = extractor.extract()
         logger.info("Extracted question content from PDF")
     else:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
-            logger.info(f"Read question content from text file: {filepath}")
+        raise ValueError(f"Unsupported file format. File must be either PDF or JSON: {filepath}")
     
     # Parse the content
     sections = re.split(r'題號：(\d+[a-z]?(?:\s*\(續\)?)?)', content)
@@ -120,7 +128,6 @@ def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Dict
             figures.append(figure_match.group(1).strip())
         question_text = re.sub(r'<FIGURE>.*?</FIGURE>', '[FIGURE]', question_text)
         
-        print(question_text)
         if base_q_number in questions:
             # Append content for continuation questions
             questions[base_q_number]['text'] += '\n' + question_text
@@ -135,18 +142,32 @@ def parse_questions(filepath: str, gemini_api_key: Optional[str] = None) -> Dict
                 'figures': figures
             }
     
-    return questions
-
-def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True) -> Dict[str, Dict[str, Any]]:
-    """Parse answers from either text file, PDF, or JSON.
+    # Save intermediate results
+    json_path = save_intermediate_json(questions, filepath, '_questions')
+    logger.info(f"Saved parsed questions to {json_path}")
     
-    Returns a dictionary with question numbers as keys and dictionaries containing:
-    - text: answer text with [TABLE] and [FIGURE] placeholders
-    - tables: list of TableData objects if present
-    - figures: list of figure descriptions if present
+    return questions, json_path
+
+def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True) -> Tuple[Dict[str, Dict[str, Any]], str]:
+    """Parse answers from either PDF or JSON.
+    
+    Returns a tuple containing:
+    1. A dictionary with question numbers as keys and dictionaries containing:
+       - text: answer text with [TABLE] and [FIGURE] placeholders
+       - tables: list of TableData objects if present
+       - figures: list of figure descriptions if present
+    2. Path to the saved JSON file
     
     If a JSON file is provided, it's assumed to be a previously saved intermediate
     result that can be loaded directly without further processing.
+    
+    Args:
+        filepath: Path to either a PDF file to process or a JSON file with cached results
+        gemini_api_key: Required API key for processing PDF files
+        is_correct_answer: Whether these are correct answers (True) or student answers (False)
+        
+    Raises:
+        ValueError: If file is not PDF/JSON or if Gemini API key is missing for PDF processing
     """
     answers = {}  # Initialize answers dictionary
     
@@ -155,9 +176,9 @@ def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correc
         with open(filepath, 'r', encoding='utf-8') as f:
             answers = json.load(f)
             logger.info(f"Loaded pre-parsed {'correct' if is_correct_answer else 'student'} answers from JSON file: {filepath}")
-            return answers
+            return answers, filepath
             
-    # Check if file is PDF
+    # Handle PDF files
     if filepath.lower().endswith('.pdf'):
         if not gemini_api_key:
             raise ValueError("Gemini API key required for PDF processing")
@@ -167,9 +188,7 @@ def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correc
         content = extractor.extract()
         logger.info(f"Extracted {'correct' if is_correct_answer else 'student'} answer content from PDF")
     else:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            content = f.read()
-            logger.info(f"Read {'correct' if is_correct_answer else 'student'} answer content from text file: {filepath}")
+        raise ValueError(f"Unsupported file format. File must be either PDF or JSON: {filepath}")
     
     # Parse the content
     sections = re.split(r'題號：(\d+[a-z]?(?:\s*\(續\)?)?)', content)
@@ -209,4 +228,9 @@ def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correc
                 'figures': figures
             }
     
-    return answers
+    # Save intermediate results
+    suffix = '_correct_answers' if is_correct_answer else '_student_answers'
+    json_path = save_intermediate_json(answers, filepath, suffix)
+    logger.info(f"Saved parsed {'correct' if is_correct_answer else 'student'} answers to {json_path}")
+    
+    return answers, json_path

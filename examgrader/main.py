@@ -9,7 +9,6 @@ from pathlib import Path
 from examgrader.api.gemini import GeminiAPI
 from examgrader.api.openai import OpenAIAPI
 from examgrader.utils.parsers import parse_questions, parse_answers
-from examgrader.utils import save_intermediate_json
 from examgrader.grader import ExamGrader
 
 # Set up logging
@@ -53,18 +52,15 @@ def main():
 
     # Process files with PDF support
     logger.info(f"Parsing questions from {args.questions_file}")
-    questions = parse_questions(args.questions_file, gemini_api_key)
-    questions_json = save_intermediate_json(questions, args.questions_file, '_questions')
+    questions, questions_json = parse_questions(args.questions_file, gemini_api_key)
     logger.info(f"Saved parsed questions to {questions_json}")
     
     logger.info(f"Parsing correct answers from {args.correct_answers_file}")
-    correct_answers = parse_answers(args.correct_answers_file, gemini_api_key, is_correct_answer=True)
-    correct_json = save_intermediate_json(correct_answers, args.correct_answers_file, '_correct_answers')
+    correct_answers, correct_json = parse_answers(args.correct_answers_file, gemini_api_key, is_correct_answer=True)
     logger.info(f"Saved parsed correct answers to {correct_json}")
     
     logger.info(f"Parsing student answers from {args.student_answers_file}")
-    student_answers = parse_answers(args.student_answers_file, gemini_api_key, is_correct_answer=False)
-    student_json = save_intermediate_json(student_answers, args.student_answers_file, '_student_answers')
+    student_answers, student_json = parse_answers(args.student_answers_file, gemini_api_key, is_correct_answer=False)
     logger.info(f"Saved parsed student answers to {student_json}")
 
     # Grade exam and save results
