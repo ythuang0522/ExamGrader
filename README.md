@@ -8,11 +8,7 @@ ExamGrader is a Python application that uses AI to automatically extract questio
 - Parse question scores, tables, and figures
 - Grade student answers against correct answers using OpenAI API
 - Automatically generate detailed grading rubrics for each question
-- Support parallel processing for faster grading and rubric generation
 - Generate detailed grading reports with scores, rubrics, and reasons
-- Save intermediate JSON files for parsed questions and answers
-- Support for loading pre-parsed JSON files to skip extraction step
-- Robust error handling and retry mechanisms for API calls
 
 ## Installation
 

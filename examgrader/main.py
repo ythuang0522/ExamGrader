@@ -31,7 +31,7 @@ def main():
     parser.add_argument('--gemini-api-key', help='Gemini API key (overrides GEMINI_API_KEY in .env)')
     parser.add_argument('--openai-api-key', help='OpenAI API key (overrides OPENAI_API_KEY in .env)')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
-    parser.add_argument('--workers', type=int, default=8, help='Number of worker threads for parallel processing (default: 8)')
+    parser.add_argument('--workers', type=int, default=12, help='Number of worker threads for parallel processing (default: 12)')
     
     args = parser.parse_args()
 

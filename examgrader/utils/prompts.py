@@ -163,15 +163,10 @@ class PromptManager:
         # Get the rubric for this question
         rubric = question_data.get('rubric', '')
         if not rubric or rubric.startswith('Failed to generate rubric'):
-            # Fallback to default scoring rules if no rubric is available
-            scoring_rules = """評分規則：
-- 如果學生答案與參考答案重點上完全相同，給10分。
-- 如果學生答案與參考答案重點上大部分相同，給8分。
-- 如果學生答案與參考答案重點上少部分相同，給4分。
-- 如果學生答案與參考答案重點上完全不同，給0分。
-- 若此題答案有證明(如證明時間複雜度)，請先考量此題目是否可能有多種證明方式。若有多種證明方式，學生答案之證明過程無需與參考答案證明過程完全一致，針對學生答案證明之合理性給與適當分數。"""
-        else:
-            scoring_rules = f"""評分標準：
+            # If no rubric is available, raise an error
+            raise ValueError("No rubric available for grading. A rubric is required for grading.")
+        
+        scoring_rules = f"""Rubric評分標準：
 {rubric}
 
 注意事項：
@@ -187,7 +182,9 @@ class PromptManager:
 參考答案：{correct_text}
 
 學生答案：{student_text}
+
 {table_instructions}
+
 {scoring_rules}
 
 請根據以上題目，參考答案，和評分標準(Rubric)評分，並以以下格式回應：
