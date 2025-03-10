@@ -32,7 +32,6 @@ def main():
     parser.add_argument('--openai-api-key', help='OpenAI API key (overrides OPENAI_API_KEY in .env)')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('--workers', type=int, default=8, help='Number of worker threads for parallel processing (default: 8)')
-    parser.add_argument('--force-rubrics', action='store_true', help='Force regeneration of rubrics even if they already exist')
     
     args = parser.parse_args()
 
@@ -58,8 +57,7 @@ def main():
         args.questions_file, 
         gemini_api_key, 
         openai_api_key, 
-        max_workers=args.workers,
-        force_regenerate_rubrics=args.force_rubrics
+        max_workers=args.workers
     )
     logger.info(f"Saved parsed questions to {questions_json}")
     

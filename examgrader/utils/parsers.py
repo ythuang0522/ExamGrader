@@ -155,31 +155,19 @@ class RubricGenerator:
         self.openai_api_key = openai_api_key
         self.max_workers = max_workers
         
-    def generate_rubrics(self, questions: Dict[str, Dict[str, Any]], force_regenerate: bool = False) -> Dict[str, Dict[str, Any]]:
+    def generate_rubrics(self, questions: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """Generate rubrics for questions using OpenAI API."""
         from examgrader.api.openai import OpenAIAPI
         from examgrader.utils.prompts import PromptManager
         
-        # Filter questions that need rubric generation
-        questions_to_process = {}
-        for q_num, q_data in questions.items():
-            if force_regenerate or 'rubric' not in q_data or not q_data['rubric']:
-                questions_to_process[q_num] = q_data
-            else:
-                logger.info(f"Skipping rubric generation for question {q_num} - rubric already exists")
-        
-        if not questions_to_process:
-            logger.info("No questions need rubric generation - all questions already have rubrics")
-            return questions
-            
-        logger.info(f"Generating rubrics for {len(questions_to_process)}/{len(questions)} questions using OpenAI API with {self.max_workers} worker threads...")
+        logger.info(f"Generating rubrics for {len(questions)} questions using OpenAI API with {self.max_workers} worker threads...")
         openai_api = OpenAIAPI(self.openai_api_key)
         
         # Generate rubrics in parallel
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             future_to_question = {
                 executor.submit(self._generate_single_rubric, openai_api, q_num, q_data): q_num 
-                for q_num, q_data in questions_to_process.items()
+                for q_num, q_data in questions.items()
             }
             
             self._process_rubric_results(questions, future_to_question)
@@ -241,12 +229,10 @@ class QuestionParser(BaseParser):
     """Parser for exam questions."""
     
     def __init__(self, filepath: str, gemini_api_key: Optional[str] = None, 
-                 openai_api_key: Optional[str] = None, max_workers: int = 5,
-                 force_regenerate_rubrics: bool = False):
+                 openai_api_key: Optional[str] = None, max_workers: int = 5):
         super().__init__(filepath, gemini_api_key)
         self.openai_api_key = openai_api_key
         self.max_workers = max_workers
-        self.force_regenerate_rubrics = force_regenerate_rubrics
     
     def _extract_content(self) -> str:
         """Extract content using QuestionExtractor."""
@@ -271,15 +257,15 @@ class QuestionParser(BaseParser):
         return result
     
     def _save_results(self, content: Dict[str, Dict[str, Any]]) -> str:
-        """Save questions and optionally generate rubrics."""
+        """Save questions and generate rubrics for PDF files."""
         # Save initial results
         json_path = save_intermediate_json(content, self.filepath, '_questions')
         logger.info(f"Saved parsed questions to {json_path}")
         
-        # Generate rubrics if OpenAI API key is provided
-        if self.openai_api_key:
+        # Generate rubrics if this is a PDF file and OpenAI API key is provided
+        if self.filepath.lower().endswith('.pdf') and self.openai_api_key:
             rubric_generator = RubricGenerator(self.openai_api_key, self.max_workers)
-            content = rubric_generator.generate_rubrics(content, self.force_regenerate_rubrics)
+            content = rubric_generator.generate_rubrics(content)
             
             # Save updated questions with rubrics
             json_path = save_intermediate_json(content, self.filepath, '_questions_with_rubrics')
@@ -310,9 +296,9 @@ class AnswerParser(BaseParser):
         return json_path
 
 def parse_questions(filepath: str, gemini_api_key: Optional[str] = None, openai_api_key: Optional[str] = None, 
-                   max_workers: int = 5, force_regenerate_rubrics: bool = False) -> Tuple[Dict[str, Dict[str, Any]], str]:
+                   max_workers: int = 5) -> Tuple[Dict[str, Dict[str, Any]], str]:
     """Parse questions from either PDF or JSON."""
-    parser = QuestionParser(filepath, gemini_api_key, openai_api_key, max_workers, force_regenerate_rubrics)
+    parser = QuestionParser(filepath, gemini_api_key, openai_api_key, max_workers)
     return parser.parse()
 
 def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True) -> Tuple[Dict[str, Dict[str, Any]], str]:

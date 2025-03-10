@@ -38,7 +38,7 @@ OPENAI_API_KEY=your_openai_api_key
 Run the application with the following command:
 
 ```bash
-python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [--workers N] [--force-rubrics] [--debug]
+python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [--workers N] [--debug]
 ```
 
 The application supports both raw input files (PDF) and pre-parsed JSON files. When using JSON files, the extraction and parsing steps are skipped, making the process faster. JSON files are automatically detected by their `.json` extension.
@@ -50,7 +50,6 @@ The application supports both raw input files (PDF) and pre-parsed JSON files. W
 - `-s, --student-answers-file`: Path to the student answers file (PDF or JSON)
 - `-o, --output-file`: Optional: Path to save grading results (defaults to student_file_results.txt)
 - `--workers`: Optional: Number of worker threads for parallel processing (default: 8)
-- `--force-rubrics`: Optional: Force regeneration of rubrics even if they already exist
 - `--gemini-api-key`: Gemini API key (overrides GEMINI_API_KEY in .env)
 - `--openai-api-key`: OpenAI API key (overrides OPENAI_API_KEY in .env)
 - `--debug`: Enable debug logging
@@ -58,8 +57,8 @@ The application supports both raw input files (PDF) and pre-parsed JSON files. W
 ### Input File Types
 
 The application accepts two types of input files:
-1. **PDF Files**: Requires Gemini API key for extraction
-2. **JSON Files**: Pre-parsed files from previous runs (fastest option)
+1. **PDF Files**: Requires Gemini API key for extraction. When processing PDF files, the system will automatically generate rubrics for all questions.
+2. **JSON Files**: Pre-parsed files from previous runs (fastest option). When using JSON files, existing rubrics are preserved.
 
 When using JSON files, they must be in the format produced by the application's save_intermediate_json function. This is useful for:
 - Rerunning grading with different parameters without re-extracting content
@@ -68,16 +67,16 @@ When using JSON files, they must be in the format produced by the application's 
 
 ### Rubric Generation
 
-The application now automatically generates detailed grading rubrics for each question using OpenAI API. The rubrics:
+The application automatically generates detailed grading rubrics for each question when processing PDF files using OpenAI API. The rubrics:
 - Break down the total points into specific scoring criteria
 - Provide clear guidelines for full, partial, and no credit
 - Focus on key concepts and skills being tested
 - Are saved with the questions in the intermediate JSON files
 
-You can force regeneration of rubrics using the `--force-rubrics` flag, which is useful when:
-- You want to improve existing rubrics
-- The question content has been updated
-- Previous rubric generation failed
+When loading questions from a JSON file, the system will use the existing rubrics stored in the file. This allows you to:
+- Preserve carefully crafted rubrics across multiple grading sessions
+- Manually adjust rubrics if needed
+- Save time by reusing previously generated rubrics
 
 ## Project Structure
 
