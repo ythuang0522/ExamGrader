@@ -3,4 +3,8 @@ google-generativeai
 pillow
 pymupdf
 tenacity
-python-dotenv 
+python-dotenv
+flask>=2.0.0
+flask-uploads
+tqdm
+werkzeug 

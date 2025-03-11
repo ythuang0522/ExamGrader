@@ -9,6 +9,7 @@ ExamGrader is a Python application that uses AI to automatically extract questio
 - Grade student answers against correct answers using OpenAI API
 - Automatically generate detailed grading rubrics for each question
 - Generate detailed grading reports with scores, rubrics, and reasons
+- Web interface for easy file upload and grading management
 
 ## Installation
 
@@ -31,11 +32,23 @@ OPENAI_API_KEY=your_openai_api_key
 
 ## Usage
 
+### Command Line Interface
+
 Run the application with the following command:
 
 ```bash
 python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [--workers N] [--debug]
 ```
+
+### Web Interface
+
+Start the web interface with:
+
+```bash
+python run.py --web [--host HOST] [--port PORT]
+```
+
+By default, the web interface runs at http://127.0.0.1:5000. You can specify a different host and port using the optional arguments.
 
 The application supports both raw input files (PDF) and pre-parsed JSON files. When using JSON files, the extraction and parsing steps are skipped, making the process faster. JSON files are automatically detected by their `.json` extension.
 
@@ -102,6 +115,10 @@ Data/                     # Directory for input/output data
 - pymupdf: PDF processing
 - tenacity: Retry mechanism for API calls
 - python-dotenv: Environment variable management
+- flask>=2.0.0: Web framework for the interface
+- flask-uploads: File upload handling
+- tqdm: Progress bar for long-running operations
+- werkzeug: WSGI utilities for Flask
 
 ## License
 

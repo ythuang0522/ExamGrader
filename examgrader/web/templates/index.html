@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Grader</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Exam Grader</h1>
+            <p class="text-gray-600">Upload your exam files and get automated grading results</p>
+        </header>
+
+        <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-8">
+            <form id="uploadForm" class="space-y-6">
+                <div class="space-y-4">
+                    <div class="file-upload">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="questions">
+                            Questions File (JSON or PDF)
+                        </label>
+                        <input type="file" id="questions" name="questions" accept=".json,.pdf"
+                               class="w-full p-2 border rounded-lg">
+                        <p class="text-sm text-gray-500 mt-1">Upload a JSON file with questions or a PDF of the exam paper</p>
+                    </div>
+
+                    <div class="file-upload">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="correct_answers">
+                            Correct Answers File (JSON or PDF)
+                        </label>
+                        <input type="file" id="correct_answers" name="correct_answers" accept=".json,.pdf"
+                               class="w-full p-2 border rounded-lg">
+                        <p class="text-sm text-gray-500 mt-1">Upload a JSON file with answers or a PDF of the answer key</p>
+                    </div>
+
+                    <div class="file-upload">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="student_answers">
+                            Student Answers File (JSON or PDF)
+                        </label>
+                        <input type="file" id="student_answers" name="student_answers" accept=".json,.pdf"
+                               class="w-full p-2 border rounded-lg">
+                        <p class="text-sm text-gray-500 mt-1">Upload a JSON file or a PDF of student's answers</p>
+                    </div>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                    Start Grading
+                </button>
+            </form>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-8 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Grading Progress</h2>
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span id="progressCount">0/0 Questions</span>
+                    <span id="progressPercentage">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="progressBar" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <p id="progressStatus" class="text-gray-600 mt-2 text-center"></p>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="max-w-6xl mx-auto bg-white rounded-lg shadow-lg p-6 hidden">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Summary Panel -->
+                <div class="lg:w-1/4">
+                    <div class="sticky top-4">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">Summary</h2>
+                        <div id="totalScore" class="text-xl font-bold p-4 bg-gray-50 rounded-lg mb-4"></div>
+                        
+                        <!-- Question Navigation -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h3 class="font-bold text-gray-700 mb-2">Questions</h3>
+                            <div id="questionNav" class="space-y-2">
+                                <!-- Question links will be dynamically added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question Results Panel -->
+                <div class="lg:w-3/4">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">Detailed Results</h2>
+                    <div id="questionResults" class="space-y-4">
+                        <!-- Question results will be dynamically added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add this to your existing JavaScript or create a new script
+        function scrollToQuestion(questionId) {
+            const element = document.getElementById(questionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html> 

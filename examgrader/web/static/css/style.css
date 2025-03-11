@@ -1,0 +1,71 @@
+/* Custom file input styling */
+.file-upload input[type="file"] {
+    @apply cursor-pointer;
+    @apply focus:outline-none;
+    @apply focus:ring-2;
+    @apply focus:ring-blue-500;
+    @apply focus:border-transparent;
+}
+
+/* Progress bar animation */
+#progressBar {
+    transition: width 0.5s ease-in-out;
+}
+
+/* Question result cards hover effect */
+#questionResults > div {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+#questionResults > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Whitespace preservation for pre-formatted text */
+.whitespace-pre-wrap {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* Loading animation for progress status */
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+#progressStatus:not(:empty) {
+    animation: pulse 2s infinite;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    #questionResults > div {
+        padding: 1rem;
+    }
+} 
