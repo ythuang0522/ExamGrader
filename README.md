@@ -133,16 +133,14 @@ examgrader/
 ├── web/                   # Web application components
 │   ├── templates/         # HTML templates for web interface
 │   │   ├── base.html      # Base template with common layout
-│   │   ├── index.html     # Main upload page
-│   │   └── results.html   # Results display page
-│   ├── static/            # Static assets (CSS, JS, images)
-│   │   ├── css/           # Stylesheet files
-│   │   └── js/            # JavaScript files
-│   ├── routes.py          # Web route handlers
-│   └── forms.py           # Form definitions and validation
+│   │   └── index.html     # Main upload and results page
+│   └── static/            # Static assets (CSS, JS, images)
+│       ├── css/           # Stylesheet files
+│       └── js/            # JavaScript files
 ├── uploads/               # Temporary storage for uploaded files
 ├── grader.py              # Exam grading logic with rubric support
-└── main.py                # CLI and web app entry point
+├── web.py                 # Web application implementation
+└── main.py                # CLI entry point
 Data/                     # Directory for input/output data
 ```
 
