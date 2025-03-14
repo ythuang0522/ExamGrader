@@ -130,8 +130,19 @@ examgrader/
 │   ├── prompts.py         # AI prompt templates
 │   ├── parsers.py         # File parsing utilities with OOP design
 │   └── file_utils.py      # File operation utilities
+├── web/                   # Web application components
+│   ├── templates/         # HTML templates for web interface
+│   │   ├── base.html      # Base template with common layout
+│   │   ├── index.html     # Main upload page
+│   │   └── results.html   # Results display page
+│   ├── static/            # Static assets (CSS, JS, images)
+│   │   ├── css/           # Stylesheet files
+│   │   └── js/            # JavaScript files
+│   ├── routes.py          # Web route handlers
+│   └── forms.py           # Form definitions and validation
+├── uploads/               # Temporary storage for uploaded files
 ├── grader.py              # Exam grading logic with rubric support
-└── main.py                # CLI entry point
+└── main.py                # CLI and web app entry point
 Data/                     # Directory for input/output data
 ```
 
