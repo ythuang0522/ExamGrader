@@ -151,3 +151,7 @@ Data/                     # Directory for input/output data
 ## License
 
 MIT 
+
+## Contact
+
+Yao-Ting Hunag (ythuang at ccu.edu.tw)
