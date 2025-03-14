@@ -167,6 +167,50 @@ class ExamGrader:
 
         logger.info(f"Total Score: {total_score}/{max_possible_score}")
         return results, total_score, max_possible_score
+
+    def grade_exam_multiple_rounds(self, questions: Dict[str, Dict[str, Any]], 
+                                 correct_answers: Dict[str, Dict[str, Any]], 
+                                 student_answers: Dict[str, Dict[str, Any]], 
+                                 num_rounds: int = 1,
+                                 output_prefix: str = "results") -> Tuple[Dict[str, Any], float, float]:
+        """Grade exam answers multiple times and return the best score.
+        
+        Args:
+            questions: Dictionary of question data including text, score, tables, and figures
+            correct_answers: Dictionary of correct answers with text, tables, and figures
+            student_answers: Dictionary of student answers with text, tables, and figures
+            num_rounds: Number of grading rounds to perform (default: 1)
+            output_prefix: Prefix for individual round result files (default: "results")
+            
+        Returns:
+            Tuple of (best results dict, best total score, max possible score)
+        """
+        best_score = 0
+        best_results = None
+        best_max_possible = 0
+        
+        logger.info(f"Starting {num_rounds} grading rounds")
+        
+        for round_num in range(1, num_rounds + 1):
+            logger.info(f"Starting grading round {round_num}/{num_rounds}")
+            
+            # Run single round grading
+            results, total_score, max_possible = self.grade_exam(questions, correct_answers, student_answers)
+            
+            # Save individual round results
+            round_output = f"{output_prefix}_r{round_num}.txt"
+            self.save_results(results, total_score, max_possible, round_output)
+            logger.info(f"Round {round_num} score: {total_score}/{max_possible}")
+            
+            # Track best score
+            if total_score > best_score:
+                best_score = total_score
+                best_results = results
+                best_max_possible = max_possible
+                logger.info(f"New best score in round {round_num}: {best_score}/{best_max_possible}")
+                
+        logger.info(f"Completed {num_rounds} rounds. Best score: {best_score}/{best_max_possible}")
+        return best_results, best_score, best_max_possible
     
     def save_results(self, results: Dict[str, Any], total_score: float, max_possible: float, output_file: str) -> None:
         """Save grading results to a file.

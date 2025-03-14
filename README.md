@@ -9,6 +9,8 @@ ExamGrader is a Python application that uses AI to automatically extract questio
 - Grade student answers against correct answers using OpenAI API
 - Automatically generate detailed grading rubrics for each question
 - Generate detailed grading reports with scores, rubrics, and reasons
+- Support for multiple grading rounds to ensure fairness
+- Batch processing of multiple student answer files
 - Web interface for easy file upload and grading management
 
 ## Installation
@@ -37,7 +39,7 @@ OPENAI_API_KEY=your_openai_api_key
 Run the application with the following command:
 
 ```bash
-python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [--workers N] [--debug]
+python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [-r <rounds>] [--workers N] [--debug]
 ```
 
 ### Web Interface
@@ -56,12 +58,38 @@ The application supports both raw input files (PDF) and pre-parsed JSON files. W
 
 - `-q, --questions-file`: Path to the questions file (PDF or JSON)
 - `-c, --correct-answers-file`: Path to the correct answers file (PDF or JSON)
-- `-s, --student-answers-file`: Path to the student answers file (PDF or JSON)
+- `-s, --student-answers-file`: Path to student answers file or directory containing multiple PDF files
 - `-o, --output-file`: Optional: Path to save grading results (defaults to student_file_results.txt)
+- `-r, --rounds`: Optional: Number of grading rounds to run (default: 1)
 - `--workers`: Optional: Number of worker threads for parallel processing (default: 8)
 - `--gemini-api-key`: Gemini API key (overrides GEMINI_API_KEY in .env)
 - `--openai-api-key`: OpenAI API key (overrides OPENAI_API_KEY in .env)
 - `--debug`: Enable debug logging
+
+### Multiple Grading Rounds
+
+The application supports running multiple grading rounds for each student's answers to ensure fairness and accuracy. When using multiple rounds:
+- Each round generates a separate result file
+- The system keeps track of the best score across all rounds
+- Final results are based on the round that achieved the highest score
+- Useful for handling variations in AI model responses
+
+To use multiple rounds:
+```bash
+python run.py -q questions.pdf -c answers.pdf -s student.pdf -r 3
+```
+
+### Batch Processing
+
+You can process multiple student answer files at once by providing a directory:
+```bash
+python run.py -q questions.pdf -c answers.pdf -s student_answers_directory/
+```
+
+The system will:
+- Process all PDF files in the specified directory
+- Generate separate result files for each student
+- Support multiple rounds per student if specified
 
 ### Input File Types
 

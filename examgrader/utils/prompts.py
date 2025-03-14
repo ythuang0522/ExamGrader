@@ -173,7 +173,7 @@ class PromptManager:
 - 根據以上評分標準給分，總分為{question_data['score']}分
 - 可以給予部分分數，但不能超過各項標準的分數上限
 - 若學生的答案採用了不同但合理的方法，應根據其方法的正確性和完整性評分
-- 請詳細說明每個評分項目的得分情況"""
+- 請詳細說明每個Rubric評分項目的得分情況"""
         
         prompt = f"""
 以下是題目與參考答案：
@@ -189,7 +189,7 @@ class PromptManager:
 
 請根據以上題目，參考答案，和評分標準(Rubric)評分，並以以下格式回應：
 得分：<分數>
-理由：<理由，請列出每個評分項目的得分和原因>
+理由：<請務必詳細說明每一個Rubric評分項目的分數原因>
 """
         return prompt
 
@@ -226,10 +226,10 @@ Your task is to create a clear, fair, and comprehensive rubric that:
 3. Provides clear guidelines for what constitutes full, partial, or no credit
 4. Focuses on the key concepts and skills being tested on the question
 
-Format the rubric as a list of criteria with point allocations. For example:
+Format the rubric as a list of criteria with point allocations in markdown format. For example:
 - Correct identification of X (3 pts)
 - Proper explanation of Y (4 pts)
 - Complete implementation of Z (3 pts)
 
-Response with the rubric only, no other text.
+只需用繁體中文輸出rubric評分規格, 不要輸出其他文字.
 """
