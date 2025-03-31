@@ -59,7 +59,8 @@ class GeminiAPI:
             time.sleep(2)
             
             response = self.client.models.generate_content(
-                model="gemini-2.0-flash-exp",
+                #model="gemini-2.0-flash-exp",
+                model="gemini-2.5-pro-exp-03-25",
                 contents=contents
             )
             

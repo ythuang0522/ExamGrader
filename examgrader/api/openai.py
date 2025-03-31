@@ -45,6 +45,7 @@ The explanation should be clear and detailed, explaining how many points were aw
 
             completion = self.client.chat.completions.create(
                 model='o3-mini',
+                reasoning_effort = "high",
                 messages=[
                     {"role": "system", "content": system_message},
                     {"role": "user", "content": prompt}
@@ -86,6 +87,7 @@ The explanation should be clear and detailed, explaining how many points were aw
             try:
                 completion = self.client.chat.completions.create(
                     model='o3-mini',  # Using GPT-4 for better rubric generation
+                    reasoning_effort = "high",
                     messages=[{"role": "user", "content": prompt}],
                 )
                 

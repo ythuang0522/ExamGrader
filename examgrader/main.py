@@ -88,8 +88,6 @@ def main():
     gemini_api_key = args.gemini_api_key or os.getenv('GEMINI_API_KEY')
     openai_api_key = args.openai_api_key or os.getenv('OPENAI_API_KEY')
 
-    print(f"OpenAI API key: {openai_api_key}")
-    print(f"Gemini API key: {gemini_api_key}")
     if not openai_api_key and not gemini_api_key:
         raise ValueError("OpenAI API and Gemini API key must be provided either via --openai-api-key or OPENAI_API_KEY in .env")
 

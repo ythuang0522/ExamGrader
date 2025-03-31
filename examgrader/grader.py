@@ -94,16 +94,20 @@ class ExamGrader:
                 'max_score': max_score,
                 'reason': f"Missing {'correct' if q_num not in correct_answers else 'student'} answer",
                 'question': question_data['text'],
-                'correct_answer': correct_answers.get(q_num, {}).get('text', 'N/A'),
-                'student_answer': student_answers.get(q_num, {}).get('text', 'N/A'),
-                'rubric': question_data.get('rubric', 'No rubric available')
             }
+            
+            # Format answers with tables and figures if available
+            results[q_num]['correct_answer'] = self._format_answer_with_media(correct_answers.get(q_num, {}))
+            results[q_num]['student_answer'] = self._format_answer_with_media(student_answers.get(q_num, {}))
+            results[q_num]['rubric'] = question_data.get('rubric', 'No rubric available')
             return 0, max_score
             
         # Generate grading prompt
         prompt = PromptManager.get_grading_prompt(
             question_data, correct_answers[q_num], student_answers[q_num]
         )
+        
+        logger.info(f"Grading prompt: {prompt}")
         
         # Call API to grade
         score, reason = self.openai_api.grade_answer(prompt)
@@ -117,10 +121,12 @@ class ExamGrader:
             'max_score': max_score,
             'reason': reason,
             'question': question_data['text'],
-            'correct_answer': correct_answers[q_num]['text'],
-            'student_answer': student_answers[q_num]['text'],
-            'rubric': question_data.get('rubric', 'No rubric available')
         }
+        
+        # Format answers with tables and figures if available
+        results[q_num]['correct_answer'] = self._format_answer_with_media(correct_answers.get(q_num, {}))
+        results[q_num]['student_answer'] = self._format_answer_with_media(student_answers.get(q_num, {}))
+        results[q_num]['rubric'] = question_data.get('rubric', 'No rubric available')
         
         logger.info(f"Question {q_num}: {score}/{max_score} - {reason}")
         return score, max_score
@@ -246,3 +252,29 @@ class ExamGrader:
                 f.write("-" * 80 + "\n\n")
                 
         logger.info(f"Saved grading results to {output_file}")
+
+    def _format_answer_with_media(self, answer_data: Dict[str, Any]) -> str:
+        """Format answer text by replacing [TABLE] and [FIGURE] placeholders with actual content.
+        
+        Args:
+            answer_data: Dictionary containing text, tables, and figures
+            
+        Returns:
+            Formatted answer text with tables and figures inserted
+        """
+        if not answer_data:
+            return 'N/A'
+            
+        formatted_text = answer_data['text']
+        
+        # Replace [TABLE] placeholders with table content
+        for table in answer_data.get('tables', []):
+            # If table is a string, use it directly; otherwise use to_markdown()
+            table_md = table if isinstance(table, str) else table.to_markdown()
+            formatted_text = formatted_text.replace('[TABLE]', table_md, 1)
+            
+        # Replace [FIGURE] placeholders with figure descriptions
+        for figure in answer_data.get('figures', []):
+            formatted_text = formatted_text.replace('[FIGURE]', f"[Figure: {figure}]", 1)
+            
+        return formatted_text

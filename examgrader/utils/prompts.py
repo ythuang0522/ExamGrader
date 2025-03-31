@@ -12,20 +12,16 @@ class PromptManager:
         IMPORTANT: Make sure to extract ALL text on the page, regardless of language or format.
 
         For EACH answer on the page:
-        1. Look for question numbers (題號) including:
+        1. Look for question numbers (題號) on the left side of the page including:
            - Simple numbers (e.g., 4, 5)
            - Numbers with subproblem letters (e.g., 2a, 2b, 2c)
            - Numbers at the start of paragraphs or sections
-           - If you see a lone subproblem letter (e.g., 'a', 'b', 'c') and the previous page had question N, 
-             assume this is subproblem of question N (e.g., if previous page had question 5, then 'd' becomes '5d')
-        2. Extract the complete text of the answer, including:
+        2. Extract the complete text of the answer for each question, including:
            - Text in any language (Chinese, English, etc.)
            - Mathematical formulas and equations, paying special attention to:
-             * Exponents (use ^ symbol, e.g., 2^n, 2^(k+1))
-             * Fractions (use LaTeX-style notation, e.g., n/(2^(k+1)))
+             * Exponents and fractions (use LaTeX-style notation, e.g., n/(2^(k+1)))
              * Subscripts (use _, e.g., a_1)
              * Mathematical operators (×, ÷, ±, ≤, ≥, ≠, etc.)
-             * Keep mathematical expressions in-line with text
              * Never split equations across multiple lines
              * Never insert random spaces or newlines within equations
              * Keep all mathematical expressions inline with text
@@ -56,16 +52,6 @@ class PromptManager:
             prefix it with N (e.g., 'd' becomes 'Nd')
           * Keep track of the main question number across pages
           * Ensure consistent subproblem labeling
-        - For answer continuations:
-          * If the page begins with text without any question number or subproblem letter,
-            and you know the previous page ended with question N subproblem X, format it as:
-            題號：NX（續）
-            <continuing answer text>
-          * For example, if the previous page ended with question 5c, format the continuation as:
-            題號：5c（續）
-          * ALWAYS capture text at the top of the page, even if it's just a few lines
-          * IMPORTANT: If there is ANY text at the top of the page before a new question number appears,
-            treat that text as a continuation from the previous question and subproblem
         """
     
     @staticmethod
@@ -153,11 +139,9 @@ class PromptManager:
         )
         
         table_instructions = """
-關於表格比較的特別說明：
-- 表格的格式可能略有不同，但內容正確即可
-- 表格中的數字可能會有小數點或千位符的差異，只要數值正確即可
-- 表格單元格中的文字可能有空格或大小寫的差異，只要內容基本相同即可
-- 重點在於表格傳達的信息是否正確，而非表格的確切格式
+**表格評分的特別說明**
+- 學生答案表格格式和參考答案表格格式通常不同，只要內容基本相同即可
+- 重點在於學生答案的表格要傳達的信息，是否和參考答案的表格要傳達的信息一樣，而非表格的格式
 """ if has_tables else ""
 
         # Get the rubric for this question
@@ -166,30 +150,33 @@ class PromptManager:
             # If no rubric is available, raise an error
             raise ValueError("No rubric available for grading. A rubric is required for grading.")
         
-        scoring_rules = f"""Rubric評分標準：
+        scoring_rules = f"""**Rubric評分標準**
 {rubric}
 
-注意事項：
-- 根據以上評分標準給分，總分為{question_data['score']}分
-- 可以給予部分分數，但不能超過各項標準的分數上限
-- 若學生的答案採用了不同但合理的方法，應根據其方法的正確性和完整性評分
-- 請詳細說明每個Rubric評分項目的得分情況"""
+**注意事項**
+- 根據以上Rubric評分標準給分，總分為{question_data['score']}分
+- 可以給予部分分數，但不能超過各項Rubric評分標準的分數上限
+- 若學生的答案和參考答案不同但合理，可獨立根據其方法的正確性和完整性評分
+- 簡短說明每一個Rubric評分項目的評分理由，無得分也請說明"""
         
         prompt = f"""
 以下是題目與參考答案：
-題目：{question_text}
+**題目** 
+{question_text}
 
-參考答案：{correct_text}
+**參考答案**
+{correct_text}
 
-學生答案：{student_text}
+**學生答案**
+{student_text}
 
 {table_instructions}
 
 {scoring_rules}
 
-請根據以上題目，參考答案，和評分標準(Rubric)評分，並以以下格式回應：
+請根據以上題目，參考答案，和Rubric評分標準評分，以下面格式回應：
 得分：<分數>
-理由：<請務必詳細說明每一個Rubric評分項目的分數原因>
+理由：<請簡短說明每一個Rubric評分項目的評分理由>
 """
         return prompt
 
@@ -226,7 +213,7 @@ Your task is to create a clear, fair, and comprehensive rubric that:
 3. Provides clear guidelines for what constitutes full, partial, or no credit
 4. Focuses on the key concepts and skills being tested on the question
 
-Format the rubric as a list of criteria with point allocations in markdown format. For example:
+Format the rubric as a list of criteria with point allocations in markdown format. But no more than 3 criteria. For example:
 - Correct identification of X (3 pts)
 - Proper explanation of Y (4 pts)
 - Complete implementation of Z (3 pts)
