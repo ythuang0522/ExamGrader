@@ -9,6 +9,7 @@ from pathlib import Path
 from examgrader.api.gemini import GeminiAPI
 from examgrader.api.openai import OpenAIAPI
 from examgrader.utils.parsers import parse_questions, parse_answers
+from examgrader.utils.jailbreak_detector import JailbreakDetector
 from examgrader.grader import ExamGrader
 
 # Set up logging
@@ -42,6 +43,60 @@ def process_student_answers(student_path: Path, questions: dict, correct_answers
         str(student_path), gemini_api_key, is_correct_answer=False
     )
     logger.info(f"Saved parsed student answers to {student_json}")
+
+    # Check for jailbreak attempts (always active)
+    logger.info(f"Checking student answers for jailbreak attempts")
+    detector = JailbreakDetector(gemini_api_key)
+    
+    # Detect jailbreaks directly in the parsed answers
+    jailbreak_results = detector.detect_jailbreaks(student_answers)
+    logger.info(f"Jailbreak results: {jailbreak_results}")
+    
+    # Check if unsafe content was detected
+    has_jailbreak = jailbreak_results.get("safety_status") == "UNSAFE"
+    
+    if has_jailbreak:
+        # Save jailbreak detection results
+        jailbreak_output = str(student_path.parent / f"{student_path.stem}_jailbreak_results.json")
+        with open(jailbreak_output, 'w', encoding='utf-8') as f:
+            import json
+            json.dump(jailbreak_results, f, ensure_ascii=False, indent=2)
+    
+        logger.warning(f"⚠️ JAILBREAK ATTEMPTS DETECTED in student answers! See {jailbreak_output} for details")
+        
+        # Skip grading and assign zero scores
+        logger.warning("Skipping grading due to jailbreak detection. Assigning zero scores.")
+        
+        # Create results with zero scores for all questions with corresponding correct answers
+        results = {}
+        valid_questions = [q_id for q_id in questions if q_id in correct_answers]
+        
+        # Calculate total possible score only for valid questions
+        max_possible = sum(int(questions[q_id]['score']) for q_id in valid_questions)
+        
+        for q_id in valid_questions:
+            question = questions[q_id]
+            correct_answer_text = correct_answers[q_id]['text']
+            
+            # Check if this question ID exists in student_answers
+            student_answer_text = "No student answer provided"
+            if q_id in student_answers:
+                student_answer_text = student_answers[q_id]['text']
+            
+            results[q_id] = {
+                'question': question['text'],
+                'correct_answer': correct_answer_text,
+                'student_answer': student_answer_text,
+                'score': 0,
+                'max_score': int(question['score']),
+                'reason': 'Grading skipped due to jailbreak detection'
+            }
+        
+        # Save zero-score results
+        logger.info(f"Saving zero-score results to {output_file}")
+        grader.save_results(results, 0, max_possible, output_file)
+        logger.info(f"Grading skipped. Total score: 0/{max_possible}")
+        return
 
     # Grade exam
     output_prefix = str(Path(output_file).with_suffix(''))

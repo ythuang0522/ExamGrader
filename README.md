@@ -12,6 +12,7 @@ ExamGrader is a Python application that uses AI to automatically extract questio
 - Support for multiple grading rounds to ensure fairness
 - Batch processing of multiple student answer files
 - Web interface for easy file upload and grading management
+- Built-in jailbreak detection to identify potential AI prompt attacks in student answers
 
 ## Installation
 
@@ -91,6 +92,7 @@ The system will:
 - Generate separate result files for each student
 - Support multiple rounds per student if specified
 
+
 ### Input File Types
 
 The application accepts two types of input files:
@@ -129,6 +131,7 @@ examgrader/
 ├── utils/                 # Utility modules
 │   ├── prompts.py         # AI prompt templates
 │   ├── parsers.py         # File parsing utilities with OOP design
+│   ├── jailbreak_detector.py # Jailbreak detection module
 │   └── file_utils.py      # File operation utilities
 ├── web/                   # Web application components
 │   ├── templates/         # HTML templates for web interface

@@ -47,7 +47,7 @@ class QuestionNumberValidator:
         corrected_text = current_text
         
         # Find all question numbers in the text
-        matches = list(re.finditer(r'題號：(\d+)(.*?)(?=\n|題號：|$)', corrected_text))
+        matches = list(re.finditer(r'題號：(\d+)((?:\([a-zA-Z]\)|\([a-zA-Z]\)\*\*|[a-zA-Z]|\*\*|[a-zA-Z]\*\*|)(?:（續）)?)', corrected_text))
         
         for match in matches:
             original_match = match.group(0)
@@ -60,7 +60,7 @@ class QuestionNumberValidator:
             
             # Check if an actual correction was made (values changed)
             values_changed = (corrected_number != main_number or corrected_subproblem != subproblem)
-            
+                        
             # Check if this is a valid sequential progression (such as 5b to 6)
             is_valid_progression = (
                 self.last_subproblem and 
@@ -84,6 +84,7 @@ class QuestionNumberValidator:
                 self.update_last_reference(corrected_number, corrected_subproblem)
             else:
                 # Even if no correction was needed, update the reference values
+                #logger.info(f"No correction needed for question number {main_number} and subproblem {subproblem}")
                 self.update_last_reference(main_number, subproblem)
         
         return corrected_text
@@ -99,8 +100,8 @@ class QuestionNumberValidator:
             Tuple of (corrected_main_number, corrected_subproblem)
         """
         # Convert to strings for consistency
-        main_number = str(main_number) if main_number else None
-        subproblem = str(subproblem) if subproblem else None
+        main_number = str(main_number) if main_number else ""
+        subproblem = str(subproblem) if subproblem else ""
         
         # Default to the original values
         corrected_main = main_number
@@ -121,7 +122,7 @@ class QuestionNumberValidator:
         # Case 2: Current has same main number but subproblem doesn't follow sequence
         elif main_number == self.last_main_number and subproblem:
             expected_next_subproblem = self._get_next_subproblem(self.last_subproblem)
-            logger.info(f"Expected next subproblem: {expected_next_subproblem}")
+            #logger.info(f"Expected next subproblem: {expected_next_subproblem}")
             
             if subproblem != expected_next_subproblem and expected_next_subproblem:
                 # Check if expected subproblem character is in the confusion pairs
@@ -147,7 +148,7 @@ class QuestionNumberValidator:
             return "a"
             
         # Handle potential formatting differences
-        cleaned_subproblem = current_subproblem.lower().replace("(", "").replace(")", "").replace("（續）", "")
+        cleaned_subproblem = current_subproblem.lower().replace("(", "").replace(")", "").replace("（續）", "").replace("*", "")
         
         if cleaned_subproblem in "abcdefghijklmnopqrstuvwxyz":
             next_letter_index = ord(cleaned_subproblem) - ord('a') + 1
@@ -197,7 +198,7 @@ class AnswerExtractor(BasePDFExtractor):
             gemini_api: Initialized GeminiAPI instance
         """
         super().__init__(pdf_path, gemini_api)
-        self.last_question_number = None  # Track the last main question number
+        self.last_question_number = '1' # Track the last main question number
         self.last_subproblem = None  # Track the last subproblem letter
         self.validator = QuestionNumberValidator()  # Initialize validator
     
@@ -238,7 +239,7 @@ class AnswerExtractor(BasePDFExtractor):
                     context_prompt += f"{self.last_subproblem}"
                 context_prompt += f" AND answers for new questions."
             
-            logger.info("\n" + context_prompt + "\n")
+            logger.debug("\n" + context_prompt + "\n")
             full_prompt = PromptManager.get_answer_extraction_prompt() + "\n" + context_prompt
             
             text = self.gemini_api.generate_content(full_prompt, image)
@@ -262,10 +263,11 @@ class AnswerExtractor(BasePDFExtractor):
                 
                 # Update last question number and subproblem based on the response
                 # Only look for main question numbers (not continuations)
-                question_matches = re.finditer(r'題號：(\d+)([a-zA-Z])?(?!（續）)', text)
+                question_matches = re.finditer(r'題號：(\d+)((?:\([a-zA-Z]\)|\([a-zA-Z]\)\*\*|[a-zA-Z]|\*\*|[a-zA-Z]\*\*|))(?!（續）)', text)
                 for match in question_matches:
                     self.last_question_number = match.group(1)
                     self.last_subproblem = match.group(2) if match.group(2) else None
+                    logger.debug(f"Last question number: {self.last_question_number}, Last subproblem: {self.last_subproblem}")
                 
                 all_text += text + "\n"
                 
