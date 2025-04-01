@@ -274,34 +274,36 @@ class QuestionParser(BaseParser):
         return json_path
 
 class AnswerParser(BaseParser):
-    """Parser for exam answers."""
+    """Parser for answer files."""
     
-    def __init__(self, filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True):
+    def __init__(self, filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True, questions_dict=None):
         super().__init__(filepath, gemini_api_key)
         self.is_correct_answer = is_correct_answer
+        self.questions_dict = questions_dict
     
     def _extract_content(self) -> str:
         """Extract content using AnswerExtractor."""
         gemini_api = GeminiAPI(self.gemini_api_key)
-        extractor = AnswerExtractor(self.filepath, gemini_api)
+        extractor = AnswerExtractor(self.filepath, gemini_api, self.questions_dict)
         content = extractor.extract()
-        logger.info(f"Extracted {'correct' if self.is_correct_answer else 'student'} answer content from PDF")
+        logger.info("Extracted answer content from PDF")
         return content
     
     def _save_results(self, content: Dict[str, Dict[str, Any]]) -> str:
-        """Save parsed answers."""
-        suffix = '_correct_answers' if self.is_correct_answer else '_student_answers'
-        json_path = save_intermediate_json(content, self.filepath, suffix)
-        logger.info(f"Saved parsed {'correct' if self.is_correct_answer else 'student'} answers to {json_path}")
-        return json_path
+        """Save parsed answers results to JSON file."""
+        type_label = "_correct" if self.is_correct_answer else "_student"
+        return save_intermediate_json(content, self.filepath, f"{type_label}_answers")
 
 def parse_questions(filepath: str, gemini_api_key: Optional[str] = None, openai_api_key: Optional[str] = None, 
                    max_workers: int = 5) -> Tuple[Dict[str, Dict[str, Any]], str]:
-    """Parse questions from either PDF or JSON."""
+    """Parse questions from file and generate rubrics if PDF is provided."""
     parser = QuestionParser(filepath, gemini_api_key, openai_api_key, max_workers)
-    return parser.parse()
+    questions, json_path = parser.parse()        
+    return questions, json_path
 
-def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True) -> Tuple[Dict[str, Dict[str, Any]], str]:
-    """Parse answers from either PDF or JSON."""
-    parser = AnswerParser(filepath, gemini_api_key, is_correct_answer)
-    return parser.parse()
+def parse_answers(filepath: str, gemini_api_key: Optional[str] = None, is_correct_answer: bool = True, 
+                 questions_dict=None) -> Tuple[Dict[str, Dict[str, Any]], str]:
+    """Parse answers from file."""
+    parser = AnswerParser(filepath, gemini_api_key, is_correct_answer, questions_dict)
+    answers, json_path = parser.parse()
+    return answers, json_path

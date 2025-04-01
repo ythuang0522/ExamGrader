@@ -19,31 +19,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def process_student_answers(student_path: Path, questions: dict, correct_answers: dict, 
-                          grader: ExamGrader, args, gemini_api_key: str) -> None:
-    """Process a single student's answers file.
+def has_jailbreak_attemp(student_path: Path, student_answers: dict, questions: dict, 
+                             correct_answers: dict, output_file: str, grader: ExamGrader,
+                             gemini_api_key: str) -> bool:
+    """Handle jailbreak detection and create zero-score results if detected.
     
     Args:
         student_path: Path to the student answers file
+        student_answers: Dictionary of student answers
         questions: Dictionary of question data
         correct_answers: Dictionary of correct answers
+        output_file: Path to save results
         grader: Initialized ExamGrader instance
-        args: Command line arguments
         gemini_api_key: API key for Gemini
-    """
-    # Generate output filename based on student filename if not specified
-    if not args.output_file:
-        output_file = str(student_path.parent / f"{student_path.stem}_results.txt")
-    else:
-        output_file = args.output_file
         
-    # Parse student answers
-    logger.info(f"Parsing student answers from {student_path}")
-    student_answers, student_json = parse_answers(
-        str(student_path), gemini_api_key, is_correct_answer=False
-    )
-    logger.info(f"Saved parsed student answers to {student_json}")
-
+    Returns:
+        bool: True if jailbreak was detected, False otherwise
+    """
     # Check for jailbreak attempts (always active)
     logger.info(f"Checking student answers for jailbreak attempts")
     detector = JailbreakDetector(gemini_api_key)
@@ -96,7 +88,41 @@ def process_student_answers(student_path: Path, questions: dict, correct_answers
         logger.info(f"Saving zero-score results to {output_file}")
         grader.save_results(results, 0, max_possible, output_file)
         logger.info(f"Grading skipped. Total score: 0/{max_possible}")
-        return
+        return True
+    
+    return False
+
+def process_student_answers(student_path: Path, questions: dict, correct_answers: dict, 
+                          grader: ExamGrader, args, gemini_api_key: str) -> None:
+    """Process a single student's answers file.
+    
+    Args:
+        student_path: Path to the student answers file
+        questions: Dictionary of question data
+        correct_answers: Dictionary of correct answers
+        grader: Initialized ExamGrader instance
+        args: Command line arguments
+        gemini_api_key: API key for Gemini
+    """
+    # Generate output filename based on student filename if not specified
+    if not args.output_file:
+        output_file = str(student_path.parent / f"{student_path.stem}_results.txt")
+    else:
+        output_file = args.output_file
+        
+    # Parse student answers
+    logger.info(f"Parsing student answers from {student_path}")
+    student_answers, student_json = parse_answers(
+        str(student_path), gemini_api_key, is_correct_answer=False, questions_dict=questions
+    )
+    logger.info(f"Saved parsed student answers to {student_json}")
+
+    # Check for jailbreak attempts and handle if detected (unless disabled)
+    if not args.disable_jailbreak_check:
+        if has_jailbreak_attemp(student_path, student_answers, questions, correct_answers, output_file, grader, gemini_api_key):
+            return
+    else:
+        logger.info("Jailbreak detection disabled, proceeding with grading")
 
     # Grade exam
     output_prefix = str(Path(output_file).with_suffix(''))
@@ -132,6 +158,8 @@ def main():
     parser.add_argument('--openai-api-key', help='OpenAI API key (overrides OPENAI_API_KEY in .env)')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('--workers', type=int, default=12, help='Number of worker threads for parallel processing (default: 12)')
+    parser.add_argument('--disable-jailbreak-check', action='store_true', 
+                       help='Disable jailbreak detection (enabled by default)')
     
     args = parser.parse_args()
 
@@ -157,7 +185,9 @@ def main():
     logger.info(f"Saved parsed questions to {questions_json}")
     
     logger.info(f"Parsing correct answers from {args.correct_answers_file}")
-    correct_answers, correct_json = parse_answers(args.correct_answers_file, gemini_api_key, is_correct_answer=True)
+    correct_answers, correct_json = parse_answers(
+        args.correct_answers_file, gemini_api_key, is_correct_answer=True, questions_dict=questions
+    )
     logger.info(f"Saved parsed correct answers to {correct_json}")
 
     # Initialize grader

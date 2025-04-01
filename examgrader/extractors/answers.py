@@ -10,21 +10,51 @@ logger = logging.getLogger(__name__)
 class QuestionNumberValidator:
     """Validates and corrects question numbers based on expected patterns."""
     
-    # Common character confusion pairs for correction
-    CONFUSION_PAIRS = {
-        '6': 'b', 'b': '6',
-        '5': 'S', 'S': '5',
-        '(': 'C', 'C': '(',
-        ')': 'c', 'c': ')',
-        '0': 'O', 'O': '0',
-        '1': 'I', 'I': '1',
-        '8': 'B', 'B': '8',
-    }
-    
-    def __init__(self):
-        """Initialize the validator."""
+    def __init__(self, questions_dict=None):
+        """Initialize the validator with a questions dictionary.
+        
+        Args:
+            questions_dict: Dictionary mapping question numbers to subproblems
+        """
+        self.questions_dict = questions_dict or {}
         self.last_main_number = None
         self.last_subproblem = None
+        
+        # Create sequential mappings from the dictionary keys
+        self.question_sequence = []
+        self.subproblem_sequences = {}
+        
+        if self.questions_dict:
+            # Get all question numbers
+            all_keys = [str(key) for key in self.questions_dict.keys()]
+            
+            # Find main questions and their subproblems
+            main_questions = set()
+            subproblems = {}
+            
+            for key in all_keys:
+                # If the key has a letter at the end, it's a subproblem (like "2a")
+                if key and key[-1].isalpha() and key[:-1].isdigit():
+                    main_q = key[:-1]  # Extract the main question number
+                    main_questions.add(main_q)
+                    
+                    # Add to subproblems dictionary
+                    if main_q not in subproblems:
+                        subproblems[main_q] = []
+                    subproblems[main_q].append(key[-1])  # Add the letter
+                else:
+                    # It's a standalone question
+                    self.question_sequence.append(key)
+            
+            # Create subproblem sequences for questions with subproblems
+            for main_q in subproblems:
+                self.subproblem_sequences[main_q] = sorted(subproblems[main_q])
+            
+            # Sort the question sequence
+            self.question_sequence = sorted(self.question_sequence, key=lambda x: int(x) if x.isdigit() else 0)
+                
+        logger.debug(f"Question sequence: {self.question_sequence}")
+        logger.debug(f"Subproblem sequences: {self.subproblem_sequences}")
     
     def update_last_reference(self, main_number, subproblem):
         """Update the reference values for last question number and subproblem."""
@@ -54,23 +84,16 @@ class QuestionNumberValidator:
             main_number = match.group(1)
             subproblem = match.group(2)
             
+            logger.debug(f"Checking and correcting: {main_number}{subproblem}")
             corrected_number, corrected_subproblem = self._check_and_correct(
                 main_number, subproblem
             )
+            logger.debug(f"Corrected: {corrected_number}{corrected_subproblem}")
             
             # Check if an actual correction was made (values changed)
             values_changed = (corrected_number != main_number or corrected_subproblem != subproblem)
-                        
-            # Check if this is a valid sequential progression (such as 5b to 6)
-            is_valid_progression = (
-                self.last_subproblem and 
-                main_number != self.last_main_number and
-                main_number.isdigit() and 
-                self.last_main_number.isdigit() and
-                int(main_number) == int(self.last_main_number) + 1
-            )
             
-            if values_changed and not is_valid_progression:
+            if values_changed:
                 # Construct the corrected 題號 format
                 corrected_marker = f"題號：{corrected_number}"
                 if corrected_subproblem:
@@ -84,13 +107,12 @@ class QuestionNumberValidator:
                 self.update_last_reference(corrected_number, corrected_subproblem)
             else:
                 # Even if no correction was needed, update the reference values
-                #logger.info(f"No correction needed for question number {main_number} and subproblem {subproblem}")
                 self.update_last_reference(main_number, subproblem)
         
         return corrected_text
     
     def _check_and_correct(self, main_number, subproblem):
-        """Check if the question number follows expected patterns and correct if needed.
+        """Check if the question number follows expected patterns based on the dictionary.
         
         Args:
             main_number: The main question number
@@ -107,100 +129,159 @@ class QuestionNumberValidator:
         corrected_main = main_number
         corrected_sub = subproblem
         
-        #logger.info(f"Checking and correcting question number {main_number} and subproblem {subproblem}")
-        #logger.info(f"Last main number: {self.last_main_number}, Last subproblem: {self.last_subproblem}")
-
-        # Case 1: Expected sequential main question (1,2,3...)
-        if self.last_subproblem is None and int(main_number) > int(self.last_main_number) + 1:
-            # Check if it might be a character confusion - main number jumps too far
-            expected_next_number = str(int(self.last_main_number) + 1)
+        # Clean the subproblem format for processing
+        cleaned_subproblem = self._clean_subproblem_format(subproblem)
+        
+        # If we don't have a questions dictionary or it's empty, just return the original values
+        if not self.questions_dict:
+            return corrected_main, corrected_sub
             
-            # First check if the main_number contains the expected number
-            if self._check_character_match(main_number, expected_next_number):
-                corrected_main = expected_next_number
-        
-        # Case 2: Current has same main number but subproblem doesn't follow sequence
-        elif main_number == self.last_main_number and subproblem:
-            expected_next_subproblem = self._get_next_subproblem(self.last_subproblem)
-            #logger.info(f"Expected next subproblem: {expected_next_subproblem}")
+        # First, validate the main question number
+        if main_number not in self.questions_dict:
+            # Find the closest valid question number
+            corrected_main = self._find_closest_question(main_number)
             
-            if subproblem != expected_next_subproblem and expected_next_subproblem:
-                # Check if expected subproblem character is in the confusion pairs
-                if self._check_character_match(subproblem, expected_next_subproblem):
-                    corrected_sub = expected_next_subproblem
-        
-        # Case 3: We expected a subproblem but got a new main number
-        elif self.last_subproblem and main_number != self.last_main_number:
-            # Check if this is a valid sequential progression (e.g., 5b to 6)
-            if main_number.isdigit() and int(main_number) == int(self.last_main_number) + 1:
-                # This is a valid new question number, not a confused subproblem
-                pass
-            # Only correct if it's not a natural progression and could be a confused character
-            elif main_number in self.CONFUSION_PAIRS and self.CONFUSION_PAIRS[main_number].lower() in "abcdefghijklmnopqrstuvwxyz":
-                corrected_main = self.last_main_number
-                corrected_sub = self.CONFUSION_PAIRS[main_number]
-        
+        # Next, validate the subproblem (if any)
+        if cleaned_subproblem:
+            # Check if this is a valid subproblem for the question
+            if corrected_main in self.subproblem_sequences:
+                valid_subproblems = self.subproblem_sequences[corrected_main]
+                
+                # If the cleaned subproblem is not valid for this question
+                if cleaned_subproblem not in valid_subproblems:
+                    # Find the expected next subproblem
+                    if not self.last_subproblem:
+                        # If there was no previous subproblem, use the first one
+                        expected_sub = valid_subproblems[0] if valid_subproblems else ""
+                    else:
+                        # Find what should come after the last subproblem
+                        expected_sub = self._get_next_valid_subproblem(
+                            corrected_main, 
+                            self._clean_subproblem_format(self.last_subproblem)
+                        )
+                    
+                    # If we found a valid expected subproblem, use it with standardized format
+                    if expected_sub:
+                        # Standardize to parentheses format
+                        corrected_sub = f"({expected_sub})"
+            else:
+                # If the question doesn't have subproblems in our dictionary, 
+                # we shouldn't have a subproblem here
+                corrected_sub = ""
+        elif subproblem:
+            # Original had formatting but no valid letter/number inside
+            corrected_sub = ""
+                
         return corrected_main, corrected_sub
     
-    def _get_next_subproblem(self, current_subproblem):
-        """Determine the expected next subproblem letter based on current."""
-        if not current_subproblem:
-            return "a"
-            
-        # Handle potential formatting differences
-        cleaned_subproblem = current_subproblem.lower().replace("(", "").replace(")", "").replace("（續）", "").replace("*", "")
-        
-        if cleaned_subproblem in "abcdefghijklmnopqrstuvwxyz":
-            next_letter_index = ord(cleaned_subproblem) - ord('a') + 1
-            if next_letter_index < 26:
-                return chr(ord('a') + next_letter_index)
-        return None
-    
-    def _check_character_match(self, text, expected_char):
-        """Checking commonly confused characters.
+    def _find_closest_question(self, question_number):
+        """Find the closest valid question number in the sequence.
         
         Args:
-            text: The text to check
-            expected_char: expected character to match
+            question_number: The question number to find the closest match for
             
         Returns:
-            If expected_char is provided, returns True if any character in text 
-            matches or could be substituted to match the expected character.
+            The closest valid question number
         """
+        if not self.question_sequence:
+            return question_number
             
-        # If expected_char is provided, we're checking if any substitution would match it
-        if expected_char:
-            # Direct match for characters that are in our confusion pairs
-            if expected_char in text and expected_char in self.CONFUSION_PAIRS:
-                return True
-                
-            # Check if any character in text could be substituted to match expected
-            for char in text:
-                if char in self.CONFUSION_PAIRS and self.CONFUSION_PAIRS[char] == expected_char:
-                    return True
-                    
-            # Check if expected_char's confusion pair appears in text
-            if expected_char in self.CONFUSION_PAIRS and self.CONFUSION_PAIRS[expected_char] in text:
-                return True
-                
-            return False
-                
-        return False
+        # If the last question exists and is valid, use it to determine direction
+        if self.last_main_number in self.question_sequence:
+            last_idx = self.question_sequence.index(self.last_main_number)
+            
+            # Determine if we should look for the next question
+            try:
+                if int(question_number) > int(self.last_main_number):
+                    # Looking forward
+                    if last_idx + 1 < len(self.question_sequence):
+                        return self.question_sequence[last_idx + 1]
+                    return self.question_sequence[-1]  # Last question if at the end
+                else:
+                    # Looking backward
+                    return self.last_main_number  # Just stick with the last one
+            except ValueError:
+                # If there was an error converting to int, just use the last question
+                return self.last_main_number
+        
+        # If no reference point, find the closest numerically
+        try:
+            q_num = int(question_number)
+            closest = min(self.question_sequence, key=lambda x: abs(int(x) - q_num))
+            return closest
+        except (ValueError, TypeError):
+            # If there was an error, return the first question
+            return self.question_sequence[0] if self.question_sequence else question_number
+    
+    def _clean_subproblem_format(self, subproblem):
+        """Remove formatting from subproblem to get the bare identifier.
+        
+        Args:
+            subproblem: The subproblem string with possible formatting
+            
+        Returns:
+            Cleaned subproblem identifier
+        """
+        if not subproblem:
+            return ""
+            
+        # Remove parentheses, continuation marker, and asterisks
+        cleaned = subproblem.lower()
+        cleaned = cleaned.replace("(", "").replace(")", "")
+        cleaned = cleaned.replace("（續）", "").replace("**", "")
+        
+        # Handle special case where it's something like "a)"
+        if cleaned and cleaned[0].isalpha():
+            return cleaned[0]  # Just return the letter
+            
+        return cleaned
+    
+    def _get_next_valid_subproblem(self, question_number, current_subproblem):
+        """Get the next valid subproblem for a question.
+        
+        Args:
+            question_number: The question number
+            current_subproblem: The current subproblem
+            
+        Returns:
+            The next valid subproblem, or empty string if not found
+        """
+        if question_number not in self.subproblem_sequences:
+            return ""
+            
+        valid_subs = self.subproblem_sequences[question_number]
+        if not valid_subs:
+            return ""
+            
+        # If current subproblem is not in the list, return the first one
+        if current_subproblem not in valid_subs:
+            return valid_subs[0]
+            
+        # Find the index of the current subproblem
+        current_idx = valid_subs.index(current_subproblem)
+        
+        # Return the next one if available
+        if current_idx + 1 < len(valid_subs):
+            return valid_subs[current_idx + 1]
+            
+        # Otherwise, return the last one
+        return valid_subs[-1]
 
 class AnswerExtractor(BasePDFExtractor):
     """Extracts answers from PDF files"""
     
-    def __init__(self, pdf_path: str, gemini_api):
+    def __init__(self, pdf_path: str, gemini_api, questions_dict=None):
         """Initialize the answer extractor.
         
         Args:
             pdf_path: Path to the PDF file
             gemini_api: Initialized GeminiAPI instance
+            questions_dict: Dictionary mapping question numbers to subproblems
         """
         super().__init__(pdf_path, gemini_api)
         self.last_question_number = '1' # Track the last main question number
         self.last_subproblem = None  # Track the last subproblem letter
-        self.validator = QuestionNumberValidator()  # Initialize validator
+        self.validator = QuestionNumberValidator(questions_dict)  # Initialize validator with questions
     
     def extract(self) -> str:
         """Extract answers from PDF pages.

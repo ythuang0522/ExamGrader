@@ -38,25 +38,25 @@ class ExamGrader:
         return any(key.startswith(q_num) and len(key) > len(q_num) and key[len(q_num)].isalpha() 
                   for key in questions.keys())
     
-    # def _verify_subproblem_scores(self, q_num: str, questions: Dict[str, Dict[str, Any]]) -> None:
-    #     """Verify that subproblem scores sum up to parent question score.
+    def _verify_subproblem_scores(self, q_num: str, questions: Dict[str, Dict[str, Any]]) -> None:
+        """Verify that subproblem scores sum up to parent question score.
         
-    #     Args:
-    #         q_num: Parent question number
-    #         questions: Dictionary of all questions
-    #     """
-    #     parent_score = int(questions[q_num]['score'])
-    #     subproblem_scores = sum(
-    #         int(q_data['score']) 
-    #         for key, q_data in questions.items() 
-    #         if key.startswith(q_num) and len(key) > len(q_num) and key[len(q_num)].isalpha()
-    #     )
+        Args:
+            q_num: Parent question number
+            questions: Dictionary of all questions
+        """
+        parent_score = int(questions[q_num]['score'])
+        subproblem_scores = sum(
+            int(q_data['score']) 
+            for key, q_data in questions.items() 
+            if key.startswith(q_num) and len(key) > len(q_num) and key[len(q_num)].isalpha()
+        )
         
-    #     if parent_score != subproblem_scores:
-    #         logger.warning(
-    #             f"Question {q_num}: Parent score ({parent_score}) does not match "
-    #             f"sum of subproblem scores ({subproblem_scores})"
-    #         )
+        if parent_score != subproblem_scores:
+            logger.warning(
+                f"Question {q_num}: Parent score ({parent_score}) does not match "
+                f"sum of subproblem scores ({subproblem_scores})"
+            )
     
     def _grade_question(self, q_num: str, question_data: Dict[str, Any], 
                        questions: Dict[str, Dict[str, Any]],
