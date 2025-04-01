@@ -10,6 +10,7 @@ from examgrader.grader import ExamGrader
 from examgrader.api.openai import OpenAIAPI
 from examgrader.api.gemini import GeminiAPI
 from examgrader.utils.parsers import parse_questions, parse_answers
+from examgrader.utils.jailbreak_detector import JailbreakDetector
 
 # Get the directory containing this file and project root
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -41,7 +42,12 @@ grading_progress = {
     'graded_questions': 0,
     'current_status': '',
     'is_complete': False,
-    'results': None
+    'results': None,
+    'jailbreak_check': {
+        'status': None,  # 'pending', 'running', 'complete'
+        'results': None,
+        'has_jailbreak': False
+    }
 }
 
 def allowed_file(filename):
@@ -102,13 +108,62 @@ def grade_exam_async(questions: Dict[str, Any], correct_answers: Dict[str, Any],
     try:
         update_progress("Initializing grader...", 0, len(questions))
         api_key = os.getenv('OPENAI_API_KEY')
-        logger.info(f"Loading OpenAI API key from environment: {'Found' if api_key else 'Not found'}")
-        if not api_key:
+        gemini_api_key = os.getenv('GEMINI_API_KEY')
+        
+        logger.info(f"Loading API keys from environment: OpenAI {'Found' if api_key else 'Not found'}, Gemini {'Found' if gemini_api_key else 'Not found'}")
+        if not api_key or not gemini_api_key:
             logger.error(f"Environment file path: {env_path}")
-            raise ValueError("OpenAI API key not found in environment variables")
+            raise ValueError("Both OpenAI API key and Gemini API key must be provided in environment variables")
+            
+        # Initialize APIs
         openai_api = OpenAIAPI(api_key=api_key)
         grader = ExamGrader(openai_api)
         
+        # Check for jailbreak attempts
+        update_progress("Checking for jailbreak attempts...")
+        grading_progress['jailbreak_check']['status'] = 'running'
+        
+        detector = JailbreakDetector(gemini_api_key)
+        jailbreak_results = detector.detect_jailbreaks(student_answers)
+        grading_progress['jailbreak_check']['results'] = jailbreak_results
+        grading_progress['jailbreak_check']['has_jailbreak'] = jailbreak_results.get("safety_status") == "UNSAFE"
+        grading_progress['jailbreak_check']['status'] = 'complete'
+        
+        if grading_progress['jailbreak_check']['has_jailbreak']:
+            logger.warning("⚠️ JAILBREAK ATTEMPTS DETECTED in student answers!")
+            update_progress("Jailbreak detected. Assigning zero scores...")
+            
+            # Create results with zero scores
+            results = {}
+            valid_questions = [q_id for q_id in questions if q_id in correct_answers]
+            max_possible = sum(int(questions[q_id]['score']) for q_id in valid_questions)
+            
+            for q_id in valid_questions:
+                question = questions[q_id]
+                correct_answer_text = correct_answers[q_id]['text']
+                student_answer_text = student_answers.get(q_id, {}).get('text', "No student answer provided")
+                
+                results[q_id] = {
+                    'question': question['text'],
+                    'correct_answer': correct_answer_text,
+                    'student_answer': student_answer_text,
+                    'score': 0,
+                    'max_score': int(question['score']),
+                    'reason': 'Grading skipped due to jailbreak detection'
+                }
+            
+            # Store results
+            grading_progress['results'] = {
+                'question_results': results,
+                'total_score': 0,
+                'max_possible': max_possible,
+                'jailbreak_detected': True
+            }
+            update_progress("Grading complete (jailbreak detected)!", len(questions))
+            grading_progress['is_complete'] = True
+            return
+        
+        # Proceed with normal grading if no jailbreak detected
         def progress_callback(q_num):
             update_progress(f"Grading question {q_num}...", 
                           grading_progress['graded_questions'] + 1)
@@ -122,7 +177,8 @@ def grade_exam_async(questions: Dict[str, Any], correct_answers: Dict[str, Any],
         grading_progress['results'] = {
             'question_results': results,
             'total_score': total_score,
-            'max_possible': max_possible
+            'max_possible': max_possible,
+            'jailbreak_detected': False
         }
         update_progress("Grading complete!", len(questions))
         grading_progress['is_complete'] = True
@@ -148,7 +204,12 @@ def upload_files():
         'graded_questions': 0,
         'current_status': '',
         'is_complete': False,
-        'results': None
+        'results': None,
+        'jailbreak_check': {
+            'status': None,  # 'pending', 'running', 'complete'
+            'results': None,
+            'has_jailbreak': False
+        }
     }
     
     try:
@@ -180,6 +241,38 @@ def upload_files():
 def get_progress():
     """Get current grading progress"""
     return jsonify(grading_progress)
+
+@app.route('/check-jailbreak', methods=['POST'])
+def check_jailbreak():
+    """Handle jailbreak detection request"""
+    global grading_progress
+    
+    try:
+        # Check if student answers are present
+        if 'student_answers' not in request.files:
+            return jsonify({'error': 'Missing student answers file'}), 400
+            
+        # Process student answers
+        student_answers = process_file(request.files['student_answers'], 'student_answers')
+        
+        # Get Gemini API key
+        gemini_api_key = os.getenv('GEMINI_API_KEY')
+        if not gemini_api_key:
+            raise ValueError("Gemini API key not found in environment variables")
+            
+        # Initialize detector and run check
+        detector = JailbreakDetector(gemini_api_key)
+        results = detector.detect_jailbreaks(student_answers)
+        
+        return jsonify({
+            'status': 'success',
+            'results': results,
+            'has_jailbreak': results.get("safety_status") == "UNSAFE"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error during jailbreak detection: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True) 

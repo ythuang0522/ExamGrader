@@ -105,15 +105,6 @@ When using JSON files, they must be in the format produced by the application's 
 - Testing and debugging without API calls
 - Manually reviewing and adjusting parsed content
 
-### Jailbreak Detection
-
-The application includes built-in jailbreak detection to identify potential AI prompt attacks in student answers. This feature:
-- Is enabled by default for security
-- Can be disabled using the `--disable-jailbreak-check` option
-- Automatically assigns zero scores to answers containing jailbreak attempts
-- Generates detailed reports explaining why an answer was flagged
-- Helps maintain academic integrity in AI-assisted grading
-
 ### Rubric Generation
 
 The application automatically generates detailed grading rubrics for each question when processing PDF files using OpenAI API. The rubrics:

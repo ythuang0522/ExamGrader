@@ -1,0 +1,171 @@
+{% macro jailbreak_results(results) %}
+<div class="jailbreak-results" id="jailbreak-results">
+    {% if results.status == 'running' %}
+    <div class="status-indicator running">
+        <div class="spinner"></div>
+        <p>Checking for jailbreak attempts...</p>
+    </div>
+    {% elif results.status == 'complete' %}
+        {% if results.has_jailbreak %}
+        <div class="alert alert-danger">
+            <h4>⚠️ Jailbreak Attempts Detected!</h4>
+            <p>The system has detected potential jailbreak attempts in the student's answers.</p>
+        </div>
+        {% else %}
+        <div class="alert alert-success">
+            <h4>✓ No Jailbreak Attempts Detected</h4>
+            <p>The student's answers have passed the security check.</p>
+        </div>
+        {% endif %}
+        
+        {% if results.results %}
+        <details class="details-section">
+            <summary class="details-summary">View Detection Details</summary>
+            <div class="criteria-list">
+                {% for line in results.results.details.split('\n') %}
+                    {% if line.strip().startswith('Analysis based on') %}
+                        <h5 class="criteria-header">{{ line.strip() }}</h5>
+                    {% elif line.strip().startswith('The submission appears') %}
+                        <p class="criteria-conclusion">{{ line.strip() }}</p>
+                    {% elif line.strip() and not line.strip().isspace() %}
+                        <div class="criteria-item">
+                            {% set parts = line.split('**') %}
+                            {% if parts|length >= 3 %}
+                                <span class="criteria-label">{{ parts[1] }}:</span>
+                                <span class="criteria-result">{{ parts[2] }}</span>
+                            {% else %}
+                                {{ line }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </details>
+        {% endif %}
+    {% endif %}
+</div>
+
+<style>
+.jailbreak-results {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.alert {
+    padding: 16px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alert h4 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.alert p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.alert-danger {
+    background-color: #fff2f2;
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+}
+
+.alert-success {
+    background-color: #f1f9f5;
+    border-left: 4px solid #28a745;
+    color: #155724;
+}
+
+.details-section {
+    margin-top: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.details-summary {
+    padding: 12px 16px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    font-weight: 500;
+    user-select: none;
+}
+
+.details-summary:hover {
+    background-color: #e9ecef;
+}
+
+.criteria-list {
+    padding: 16px;
+}
+
+.criteria-header {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.criteria-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.criteria-item:last-child {
+    border-bottom: none;
+}
+
+.criteria-label {
+    color: #495057;
+    font-weight: 500;
+    min-width: 200px;
+}
+
+.criteria-result {
+    color: #6c757d;
+}
+
+.criteria-conclusion {
+    margin-top: 16px;
+    padding: 12px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    color: #495057;
+}
+</style>
+{% endmacro %} 
