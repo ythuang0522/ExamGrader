@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalScore = document.getElementById('totalScore');
     const questionNav = document.getElementById('questionNav');
     const questionResults = document.getElementById('questionResults');
+    const jailbreakResults = document.getElementById('jailbreakResults');
 
     let pollInterval;
 
@@ -30,6 +31,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('Upload failed');
             }
             
+            // Scroll to progress section immediately after form submission
+            setTimeout(() => {
+                progressSection.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start'
+                });
+            }, 100);
+            
             // Start polling for progress
             pollInterval = setInterval(checkProgress, 1000);
             
@@ -49,6 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 clearInterval(pollInterval);
                 if (data.results) {
                     displayResults(data.results);
+                    // Ensure results are rendered before scrolling
+                    setTimeout(() => {
+                        resultsSection.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'start'
+                        });
+                    }, 200);
                 }
             }
         } catch (error) {
@@ -57,13 +73,86 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateProgress(data) {
-        const { total_questions, graded_questions, current_status } = data;
+        const { total_questions, graded_questions, current_status, jailbreak_check } = data;
         const percentage = total_questions ? Math.round((graded_questions / total_questions) * 100) : 0;
         
         progressBar.style.width = `${percentage}%`;
         progressCount.textContent = `${graded_questions}/${total_questions} Questions`;
         progressPercentage.textContent = `${percentage}%`;
         progressStatus.textContent = current_status;
+
+        // Update jailbreak results if available
+        if (jailbreak_check) {
+            updateJailbreakResults(jailbreak_check);
+        }
+    }
+
+    function updateJailbreakResults(jailbreakData) {
+        if (!jailbreakData) return;
+
+        let html = '';
+        
+        if (jailbreakData.status === 'running') {
+            html = `
+                <div class="status-indicator running">
+                    <div class="spinner"></div>
+                    <p>Checking for jailbreak attempts...</p>
+                </div>
+            `;
+        } else if (jailbreakData.status === 'complete') {
+            if (jailbreakData.has_jailbreak) {
+                html = `
+                    <div class="alert alert-danger">
+                        <h4>⚠️ Jailbreak Attempts Detected!</h4>
+                        <p>The system has detected potential jailbreak attempts in the student's answers.</p>
+                    </div>
+                `;
+            } else {
+                html = `
+                    <div class="alert alert-success">
+                        <h4>✓ No Jailbreak Attempts Detected</h4>
+                        <p>The student's answers have passed the security check.</p>
+                    </div>
+                `;
+            }
+
+            if (jailbreakData.results) {
+                const details = jailbreakData.results.details.split('\n');
+                let criteriaHtml = '';
+                
+                details.forEach(line => {
+                    const trimmedLine = line.trim();
+                    if (trimmedLine.startsWith('Analysis based on')) {
+                        criteriaHtml += `<h5 class="criteria-header">${trimmedLine}</h5>`;
+                    } else if (trimmedLine.startsWith('The submission appears')) {
+                        criteriaHtml += `<p class="criteria-conclusion">${trimmedLine}</p>`;
+                    } else if (trimmedLine && !trimmedLine.isSpace) {
+                        const parts = trimmedLine.split('**');
+                        if (parts.length >= 3) {
+                            criteriaHtml += `
+                                <div class="criteria-item">
+                                    <span class="criteria-label">${parts[1]}:</span>
+                                    <span class="criteria-result">${parts[2]}</span>
+                                </div>
+                            `;
+                        } else {
+                            criteriaHtml += `<div class="criteria-item">${trimmedLine}</div>`;
+                        }
+                    }
+                });
+
+                html += `
+                    <details class="details-section">
+                        <summary class="details-summary">View Detection Details</summary>
+                        <div class="criteria-list">
+                            ${criteriaHtml}
+                        </div>
+                    </details>
+                `;
+            }
+        }
+
+        jailbreakResults.innerHTML = html;
     }
 
     function displayResults(results) {
@@ -77,6 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     ${results.total_score}/${results.max_possible}
                 </div>
                 <div class="text-gray-600">${scorePercentage}%</div>
+                ${results.jailbreak_detected ? '<div class="text-red-600 text-sm mt-2">⚠️ Jailbreak Detected</div>' : ''}
             </div>
         `;
 
