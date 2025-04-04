@@ -16,7 +16,7 @@ class OpenAIAPI:
         self.api_key = api_key
         self.client = OpenAI(api_key=self.api_key)
     
-    def grade_answer(self, prompt: str) -> tuple:
+    def grade_answer(self, prompt: str, model_name: str = "o3-mini") -> tuple:
         """Call OpenAI API to grade an answer.
         
         Args:
@@ -42,7 +42,7 @@ You MUST respond in EXACTLY this format:
 The explanation should be clear and detailed, explaining how many points were awarded for each criterion and why."""
 
             completion = self.client.chat.completions.create(
-                model='o3-mini',
+                model=model_name,
                 #reasoning_effort = "high",
                 messages=[
                     {"role": "system", "content": system_message},
@@ -68,7 +68,7 @@ The explanation should be clear and detailed, explaining how many points were aw
             logger.error(f"Error calling OpenAI API: {e}")
             return 0, f"API error: {str(e)}"
             
-    def generate_rubric(self, prompt: str, max_retries: int = 3) -> str:
+    def generate_rubric(self, prompt: str, max_retries: int = 3, model_name: str = "o3-mini", reasoning_effort: str = "high") -> str:
         """Call OpenAI API to generate a rubric for a question with retry logic.
         
         Args:
@@ -84,8 +84,8 @@ The explanation should be clear and detailed, explaining how many points were aw
         while retries <= max_retries:
             try:
                 completion = self.client.chat.completions.create(
-                    model='o3-mini',  # Using GPT-4 for better rubric generation
-                    reasoning_effort = "high",
+                    model=model_name,  
+                    reasoning_effort = reasoning_effort,
                     messages=[{"role": "user", "content": prompt}],
                 )
                 

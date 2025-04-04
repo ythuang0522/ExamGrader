@@ -126,7 +126,7 @@ class ExamGrader:
         results[q_num]['student_answer'] = self._format_answer_with_media(student_answers.get(q_num, {}))
         results[q_num]['rubric'] = question_data.get('rubric', 'No rubric available')
         
-        logger.info(f"Question {q_num}: {score}/{max_score} - {reason}")
+        logger.debug(f"Question {q_num}: {score}/{max_score} - {reason}")
         return score, max_score
 
     def grade_exam(self, questions: Dict[str, Dict[str, Any]], 

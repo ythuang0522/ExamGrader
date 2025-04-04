@@ -1,7 +1,9 @@
 """Module for detecting jailbreak attempts in student exam answers."""
 
 import logging
+import re
 import json
+import time
 from typing import Dict, Any, Optional, Tuple, List
 
 from examgrader.api.gemini import GeminiAPI
@@ -12,13 +14,13 @@ logger = logging.getLogger(__name__)
 class JailbreakDetector:
     """Detects jailbreak attempts in student exam answers."""
     
-    def __init__(self, gemini_api_key: str):
-        """Initialize the jailbreak detector.
+    def __init__(self, gemini_api: GeminiAPI):
+        """Initialize the JailbreakDetector.
         
         Args:
-            gemini_api_key: API key for Gemini
+            gemini_api: Initialized GeminiAPI instance
         """
-        self.gemini_api = GeminiAPI(gemini_api_key)
+        self.gemini_api = gemini_api
         
     def detect_jailbreaks(self, student_answers: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
         """Detect jailbreak attempts in student answers.
