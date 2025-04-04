@@ -47,3 +47,6 @@ Data/*
 !Data/.gitkeep
 !Data/Homework1_2025.pdf
 !Data/411000001_範例.pdf
+!Data/411000001_範例_results.txt
+!Data/411000001_範例_student_answers.json
+!Data/Homework1_2025_questions_with_rubrics.json

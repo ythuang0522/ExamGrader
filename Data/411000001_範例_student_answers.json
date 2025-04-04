@@ -1,0 +1,76 @@
+{
+  "1": {
+    "text": "用 recursion, avoid stackoverflow? ⇒ naive 會使呼叫層數過多 而 stackoverflow\n遞迴式: F(n)=F(n-1)+F(n-2)\n<法一> 記憶化, 把算過的數值存在一個陣列裡, 避免重複計算 ⇒ O(n)\nex: int memo[1000000]={0};\nint fib(int n){\n  if(n<=1) return n; → 沒算過 fib 才算, 否則算過就可直接查表\n  if(memo[n]!=0) return memo[n];\n  return memo[n] = fib(n-1)+fib(n-2);\n}\n<法二> 使用尾遞迴, 讓回傳的東西只有函數自己 (∵ compiler 可優化)\nex: int fib_tail(int n, int a=0, int b=1){\n  if(n==0) return a;\n  if(n==1) return b;\n  return fib_tail(n-1, b, a+b);\n}",
+    "tables": [],
+    "figures": []
+  },
+  "2a": {
+    "text": "(a) T(n) = 2T(n/3) + T(n/2) + cn\n<法一> 遞迴樹 (∵ 包含 2 種子問題, 不能直接用 Master Theorem)\n<FIGURE>A recursion tree is drawn.\nThe root node represents the cost 'cn'.\nLevel 1 has three child nodes representing the costs from the recursive calls: c(n/3), c(n/3), and c(n/2). The sum of costs at this level is indicated as cn/3 + cn/3 + cn/2 = 7/6 cn.\nLevel 2 shows the expansion from Level 1. The first c(n/3) node expands to c(n/9), c(n/9), c(n/6). The second c(n/3) node also expands to c(n/9), c(n/9), c(n/6). The c(n/2) node expands to c(n/6), c(n/6), c(n/4). The sum of costs at this level is indicated as 2(c/9 n + c/9 n + c/6 n) + (c/6 n + c/6 n + c/4 n) = (7/6)^2 cn.\nEllipses (...) indicate further expansion of the tree.\nTo the right of the tree, the tree height is noted as log_2 n.</FIGURE>\nT(n) = cn + 7/6 cn + (7/6)^2 cn + ... + (7/6)^(log_2 n - 1) cn + O(n^(log_2 3))\n≤ Σ_(i=0)^∞ (7/6)^i cn + O(n^(log_2 3)) = 1/(1 - 7/6) cn + O(n^(log_2 3)) ⇒ O(n^(log_2 3)) #\n（續）\n<法三=> Master Theorem\nT(n)=2T(n/3) + T(n/2) + cn ≤ 3T(n/2) + cn 令 cn=f(n)\nlog_2 3 => f(n) = O(n^(log_2 3 - ε)) for some constant ε>0 => T(n) = Θ(n^(log_2 3)) #",
+    "tables": [],
+    "figures": []
+  },
+  "2b": {
+    "text": "T(n)=2T(√n)+lgn\n令 k=lgn ⇒ n=2^k ⇒ T(2^k) = 2T(2^(k/2)) + k 令 S(k)=T(2^k) ⇒ S(k) = 2S(k/2)+k\nBy Master Theorem, log_2 2 = 1 ⇒ O(k^1) 但 f(n)亦是 O(k) ⇒ S(k)=O(klogk)\n代回 ⇒ T(2^k) = O(klogk) ⇒ T(n)=O(lgn log(lgn))\n也就是 T(n)=O(lgnloglgn) # (∵ log通常以2為底)",
+    "tables": [],
+    "figures": []
+  },
+  "3": {
+    "text": "heap為 complete binary tree, 每層都是滿的, 只有最底層可能不滿, 由左到右填充, H=⌊log₂n⌋, 根: H=0; 最底層: H=H\nHth 層 Max node 數量 = 2^H (node 數)\n已知 Full Binary Tree 在高度H時的 Max node 數量 = 2^(H+1)-1\nBy Mathematical Theorem,\n① 當 h=0時, 最多有 ⌈n/2^(h+1)⌉ 個 nodes 在 0th 層 ⇒ ⌈n/2^(h+1)⌉ = ⌈n/2^(0+1)⌉ = ⌈n/2⌉ 成立 (∵ 一半是leaf, 此時的 h=0 為最底層) 除2是因為每個子節點最多只有2個, 而第 h 層的 node 來自 (h+1)th\n② 當 h=k時, 假設在 k th 層時有最多 ⌈n/2^(k+1)⌉ 個 nodes 成立\n③ 當 h=k+1時, 最多有 第 k 層 ÷ 2 個 nodes (∵ complete 且 binary) 即 ⌈n/2^(k+1)⌉ / 2 在 (k+1)th 層, 與假設②相符 (Note: The derivation to relate k+1 layer to k layer seems simplified here, floor/ceil properties might be needed for rigor. The stated result ⌈n/2^((k+1)+1)⌉ is correct, but the step shown is just assertion)\n故 n-element heap has at most ⌈n/2^(h+1)⌉ nodes at height h #",
+    "tables": [],
+    "figures": []
+  },
+  "4": {
+    "text": "① Radix Sort 只能排序整數、固定長度字串\nComparison-based Sorting 可處理任意 data type, ex: float, double\n② 比較排序在一般情況下實用穩定, 常數時間開銷稍低, 而且通用性、易用性在各環境下一致性高\n③ Radix Sort 只適用鍵值大小固定且小的資料, 需要額外空間\n且當 key 太大, O(d(n+k)) 會大於 Comparison-based Sorting 的 O(nlogn)",
+    "tables": [],
+    "figures": []
+  },
+  "5": {
+    "text": "dp[i][j] = min (dp[i][k] + dp[k][j] + (S[j] - S[i])) for i<k<j.  (k=含k後切割點)\ndp[i][j] = 長度i到j的最小成本.  (i=左界, j=右界). S[j]-S[i] = 長度 j 到 i 的成本\nS = {0, 3, 6, 12, 17, 22, 28, 30}, Bottom-up DP:\n[TABLE]\n① 對角線皆為0 ⇒ 自己&自己不可切割\n② dp[i][i+1]=0 ⇒ 只有相鄰點不需切割\n③ 長度2:\nS[0]=0 ~ S[2]=6\n(1) dp[0][2] = dp[0][1] + dp[1][2] + (6-0) = 0 + 0 + 6 = 6\n(2) dp[1][3] = dp[1][2] + dp[2][3] + (12-3) = 0 + 0 + 9 = 9\n(3) 同理, dp[2][4] = 17-6 = 11 ; dp[3][5] = 22-12 = 10\ndp[4][6] = 28-17 = 11 ; dp[5][7] = 30-22 = 8\n④ 長度3: dp[0][3] = min (dp[0][k] + dp[k][3] + 12) for 0<k<3\n= dp[0][2] + dp[2][3] + 12 = 18\n⑤ 同理，處理長度從 4~7 的 dp，最終得到 dp[0][7] = 84 *\nBack Trace:\n[TABLE]\n令 bestcut[i][j] 為最佳切割點\n[TABLE]\n記錄最佳切割點\n∵ bestcut[0][7]=12\n① 先切12 ⇒ (0, 12) (12, 30)\n② 再切22 ← 從 best cut 表中查詢 (22, 30)\n∵ bestcut[0][3]=6\n↓切6\n(0,6) & (6,12)\n↓切3\n(0,3) & (3,6)\n↓切17\n(12,17) & (17,22)\n↓切28\n(22,28) & (28,30)\n(12, 22)\nA: 12, 6, 3, 22, 17, 28 *",
+    "tables": [
+      "|       | 0 | 1 | 2 | 3  | 4  | 5  | 6  | 7  |\n|-------|---|---|---|----|----|----|----|----|\n| i/S[j]| 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |\n| 0 (0) | 0 | 0 | 6 | 18 | 34 | 50 | 72 | 84 |\n| 1 (3) |   | 0 | 0 | 9  | 23 | 35 | 59 | 70 |\n| 2 (6) |   |   | 0 | 0  | 11 | 26 | 44 | 56 |\n| 3 (12)|   |   |   | 0  | 0  | 10 | 26 | 36 |\n| 4 (17)|   |   |   |    | 0  | 0  | 11 | 21 |\n| 5 (22)|   |   |   |    |    | 0  | 0  | 8  |\n| 6 (28)|   |   |   |    |    |    | 0  | 0  |\n| 7 (30)|   |   |   |    |    |    |    | 0  |",
+      "| dp[i][j] | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n|----------|---|---|---|---|---|---|---|---|\n|   |   | 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |\n| 0 | 0 | 0 | 0 | 6 | 18 | 34 | 50 | 72 | 84 |\n| 1 | 3 |   | 0 | 0 | 9 | 23 | 35 | 59 | 70 |\n| 2 | 6 |   |   | 0 | 0 | 11 | 26 | 44 | 56 |\n| 3 | 12 |  |   |   | 0 | 0 | 10 | 26 | 36 |\n| 4 | 17 |  |   |   |   | 0 | 0 | 11 | 21 |\n| 5 | 22 |  |   |   |   |   | 0 | 0 | 8 |\n| 6 | 28 |  |   |   |   |   |   | 0 | 0 |\n| 7 | 30 |  |   |   |   |   |   |   | 0 |",
+      "| best cut | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |\n|----------|---|---|---|---|---|---|---|---|\n|   |   | 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |\n| 0 | 0 | 0 | 0 | 3 | 6 | 6 | 12 | 12 | 12 |\n| 1 | 3 |   | 0 | 0 | 6 | 6 | 17 | 17 | 22 |\n| 2 | 6 |   |   | 0 | 0 | 12 | 12 | 22 | 22 |\n| 3 | 12 |  |   |   | 0 | 0 | 17 | 17 | 22 |\n| 4 | 17 |  |   |   |   | 0 | 0 | 22 | 28 |\n| 5 | 22 |  |   |   |   |   | 0 | 0 | 28 |\n| 6 | 28 |  |   |   |   |   |   | 0 | 0 |\n| 7 | 30 |  |   |   |   |   |   |   | 0 |"
+    ],
+    "figures": []
+  },
+  "6a": {
+    "text": "設 dp[i][j][k] 為 \"前 i 個字符的序列 A, 前 j 個字符的序列 B 前 k 個字符的序列 C, 對應的 LCS 長度\"\ndp[i][j][k] = { dp[i-1][j-1][k-1] + 1 , if A[i] = B[j] = C[k] ; max(dp[i-1,j,k], dp[i,j-1,k], dp[i,j,k-1]) , o.w. }\nand dp[i][0][k] = dp[0][j][k] = dp[i][j][0] = 0",
+    "tables": [],
+    "figures": []
+  },
+  "6b": {
+    "text": "設 dp[i][j] 為 \"以 ith 字符結束的前綴與以 jth 字符結束的前綴的最長相同 LRS 子序列長度\"\n（續）\ndp[i][j] = { dp[i-1][j-1]+1 if S[i]=S[j] 且 i≠j and 0 if i=0 v j=0 (max(dp[i-1][j], dp[i][j-1]) o.w.\n[TABLE]\nBottom Up 依序填表.\n例如 dp[1][4] 來自 dp[0][3]+1, 因 A 和 A 對應; dp[1][6] = max(dp[1][5], dp[0][6]) 以此類推.\nA ↑ Back Trace 是利用 dp[8][8]=4, 往左、上、左上角找, 若該元素 T ↑ =左上角元素+1 則輸出\nA ↑\nT ↓\nA: ATAT, 長度 4 #",
+    "tables": [
+      "| i\\j |   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |\n|-----|---|---|---|---|---|---|---|---|---|---|\n|   | Yj|   | A | T | T | A | A | T | A | T |\n| 0 | Xi| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |\n| 1 | A | 0 | 0↖ | 0 | 0 | 1↖ | 1↖ | 1 | 1↖ | 1 |\n| 2 | T | 0 | 0 | 1↖ | 1↖ | 1 | 1 | 2↖ | 2 | 2↖ |\n| 3 | T | 0 | 0 | 1 | 2↖ | 2 | 2 | 2 | 2 | 3↖ |\n| 4 | A | 0 | 1↖ | 1 | 2 | 2 | 3↖ | 3 | 3↖ | 3 |\n| 5 | A | 0 | 1 | 1 | 2 | 3↖ | 3 | 3 | 4↖ | 4 |\n| 6 | T | 0 | 1 | 2↖ | 2 | 3 | 3 | 4↖ | 4 | 4 |\n| 7 | A | 0 | 1 | 2 | 2 | 3↖ | 4↖ | 4 | 4 | 4 |\n| 8 | T | 0 | 1 | 2↖ | 3↖ | 3 | 4 | 4 | 4 | 4↖ |"
+    ],
+    "figures": []
+  },
+  "6c": {
+    "text": "b、(c) LPS 即反轉後的原字串 + 原字串 =>\ndp[i][j] = { dp[i-1][j-1]+1 if S[i]=S[j] and 0 if i=0 v j=0 (max(dp[i-1][j], dp[i][j-1]) o.w.\n[TABLE]\nBottom Up 依序填表.\n例如 dp[1][4] 來自 dp[0][3]+1, 因 r 和 r 對應; dp[1][6] = max(dp[1][5], dp[0][6]) 以此類推.\nc ↑\na ↑\nr ↑ Back Trace 是利用 dp[9][9]=5, 往左、上、左上角找, 若該元素 a ↑ =左上角元素+1 則輸出\nc ←\nA: carac, 長度 5 #",
+    "tables": [
+      "| i\\j |   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |\n|-----|---|---|---|---|---|---|---|---|---|---|---|\n|   | Yj|   | c | h | a | r | a | c | t | e | r |\n| 0 | Xi| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |\n| 1 | r | 0 | 0 | 0 | 0 | 1↖ | 1 | 1 | 1 | 1 | 1↖ |\n| 2 | e | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 2↖ | 2 |\n| 3 | t | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 2↖ | 2 | 2 |\n| 4 | c | 0 | 1↖ | 1 | 1 | 1 | 1 | 2↖ | 2 | 2 | 2 |\n| 5 | a | 0 | 1 | 1 | 2↖ | 2 | 2↖ | 2 | 2 | 2 | 2 |\n| 6 | r | 0 | 1 | 1 | 2 | 3↖ | 3 | 3 | 3 | 3 | 3↖ |\n| 7 | a | 0 | 1 | 1 | 2 | 3 | 4↖ | 4 | 4 | 4 | 4 |\n| 8 | h | 0 | 1 | 2↖ | 2 | 3 | 4 | 4 | 4 | 4 | 4 |\n| 9 | c | 0 | 1 | 2 | 2 | 3 | 4 | 5↖ | 5 | 5 | 5 |"
+    ],
+    "figures": []
+  },
+  "7": {
+    "text": "令 V_i 為 ith 物品的 value, W_i 為 ith 物品的 weight, W 為 max capacity, B[k,w] 表示前 k 個物品在容量 W 下的 Max value\n令 B[k,w] = { B[k-1, w] if w < W_k 以 weight 為主方法\n           { Max ([B[k-1, w], B[k-1, w-W_k] + b_k]) o.w.\n           b_k = 第 k 個物品的 value\n初始化時若 k=0 or w=0 => 0; B[0, v] 都為 0\n\n[TABLE]\n\n[TABLE]\n2-2=0\n5-3=2\nA= value=5 #\n\n因此題 weight 較 value 大, 以 value 為主\ndp[v, i] = { 0                     if v=0\n           { ∞                     if i=0, v>0\n           { min(dp[v, i-1], dp[v-v_i, i-1] + w_i) o.w.  -> ith 物品的 weight\n                                                          -> ith 物品的 value\n\n[TABLE]\n\n[TABLE]\n\n因 W 背包容量共有 350, 由 dp[5][4] 往回找\n350 - 200 = 150   150 - 150 = 0\n=> item 3 + item 2\n=> value = 2 + 3 = 5 #\n**",
+    "tables": [
+      "| item | Wi  | Vi |\n|------|-----|----|\n| 1    | 100 | 1  |\n| 2    | 150 | 2  |\n| 3    | 200 | 3  |\n| 4    | 300 | 4  |",
+      "| item \\ w | 0 | 100 | 150 | 200 | 250 | 300 | 350 |\n|----------|---|-----|-----|-----|-----|-----|-----|\n| 0        | 0 | 0   | 0   | 0   | 0   | 0   | 0   |\n| 1 X      | 0 | 1   | 1   | 1   | 1   | 1   | 1   |\n| 2 ✓      | 0 | 1   | 2   | 2   | 3   | 3   | 3   |\n| 3 ✓      | 0 | 1   | 2   | 3   | 3   | 4   | 5   |\n| 4 X      | 0 | 1   | 2   | 3   | 3   | 4   | 5   |",
+      "| v \\ i | 0 | 1  | 2  | 3  | 4  |\n|-------|---|----|----|----|----|\n| 0     | 0 | 0  | 0  | 0  | 0  |\n| 1     | ∞ | 100| 100| 100| 100|\n| 2     | ∞ | ∞  | 150| 150| 150|\n| 3     | ∞ | ∞  | 250| 200| 200|\n| 4     | ∞ | ∞  | ∞  | 300| 300|\n| 5     | ∞ | ∞  | ∞  | 350| 350|\n| 6     | ∞ | ∞  | ∞  | 450| 450|\n| 7     | ∞ | ∞  | ∞  | ∞  | 500|\n| 8     | ∞ | ∞  | ∞  | ∞  | 600|\n| :     | : | :  | :  | :  | :  |",
+      "| item | Wi  | Vi |\n|------|-----|----|\n| 1    | 100 | 1  |\n| 2    | 150 | 2  |\n| 3    | 200 | 3  |\n| 4    | 300 | 4  |"
+    ],
+    "figures": []
+  },
+  "8": {
+    "text": "step1：先照結束時間排序 (ascending)\n[TABLE]\nj=1\nj=2\nj=3\nj=4\nj=5\nj=6\n\n令 dp[j] 為選擇 activity j 的 Max value, p(j) 表活動 j 前結束的 最後一個 index ⇒ dp[j] = Max(dp[j-1], v_j + dp[p(j)]) 第j個活動的 value\n使用 binary search (and dp[0]=0)\n[TABLE]\n(不能選5會重疊)\n\n[TABLE]\nj=1\nj=2\nj=3\nj=4\nj=5\nj=6\n最佳解 dp[6]=8\noption one ⇒ 選 activity (2, 4, 3) + activity (5, 5, 5)\n\n(如果 start time 不可與 end time overlap)\n[TABLE]\nj=1\nj=2\nj=3\nj=4\nj=5\nj=6\n如果 start time 可與 finish time overlap\n① 先照 finish time sorting ,\n令 si 為 activity i 的 start time , fi 為 activity i 的 finish time ,\nsij = {a_k : f_i < s_k < f_k < s_j} ⇒ Sij is the subset of activities in S that can start after activity ai finishes and finish before activity aj starts 。 f_0=0 and s_(n+1) = f_(n+1) , then S = S_(0,n+1)\n令 H(i) = max{ l = {1, 2, ..., i-1} | f_l ≤ s_i }\n↳ 在 i 之前可選擇的 activity ↓ 前一個 finish time <= 當前 start time\n令 A(i) = 考慮 activity i 的最大 value ,\n令 wi 為 activity i 的 weight/value\nA(i) = { 0 , i=0 ; max{A(i-1), w_i + A(H(i))} o.w. }\n\n[TABLE]\nA: Max value = 10 , 選 (1,3,1) + (3,5,4) + (5,5,5)",
+    "tables": [
+      "| activity | start | end | value |\n|----------|-------|-----|-------|\n| 5        | 1     | 3   | 1     |\n| 4        | 1     | 4   | 3     |\n| 1        | 2     | 4   | 3     |\n| 3        | 3     | 4   | 2     |\n| 6        | 3     | 5   | 4     |\n| 2        | 5     | 5   | 5     |",
+      "| activity | p(j) |\n|----------|------|\n| 5        | 0    |\n| 4        | 0    |\n| 1        | 0    |\n| 3        | 1    |\n| 6        | 1    |\n| 2        | 3    |",
+      "| activity | start | end | value | p(j) | 狀態計算        | dp[j] |\n|----------|-------|-----|-------|------|-----------------|-------|\n| 5        | 1     | 3   | 1     | 0    | max(0, 1+0)     | 1     |\n| 4        | 1     | 4   | 3     | 0    | max(1, 3+0)     | 3     |\n| 1        | 2     | 4   | 3     | 0    | max(3, 3+0)     | 3     |\n| 3        | 3     | 4   | 2     | 1    | max(3, 2+1)     | 3     |\n| 6        | 3     | 5   | 4     | 1    | max(3, 4+1)     | 5     |\n| 2        | 5     | 5   | 5     | 3    | max(5, 5+3)     | 8     |",
+      "| activity | start | end | value | p(j) | 狀態計算        | dp[j] |\n|----------|-------|-----|-------|------|-----------------|-------|\n| 5        | 1     | 3   | 1     | 0    | max(0, 1+0)     | 1     |\n| 4        | 1     | 4   | 3     | 0    | max(1, 3+0)     | 3     |\n| 1        | 2     | 4   | 3     | 0    | max(3, 3+0)     | 3     |\n| 3        | 3     | 4   | 2     | 1    | max(3, 2+1)     | 3     |\n| 2        | 5     | 5   | 5     | 3    | max(3, 5+3)     | 8     |\n| 6        | 3     | 5   | 4     | 1    | max(8, 4+1)     | 5     |",
+      "| activity | 1 | 2 | 3 | 4 | 5 | 6 |\n|----------|---|---|---|---|---|---|\n| start    | 1 | 1 | 2 | 3 | 3 | 5 |\n| finish   | 3 | 4 | 4 | 4 | 5 | 5 |\n| weight   | 1 | 5 | 3 | 2 | 4 | 5 |\n| H(i)     | 0 | 0 | 0 | 1 | 1 | 5 |\n| A(i)     | 1 | 3 | 3 | 3 | 5 | 10 |"
+    ],
+    "figures": []
+  }
+}

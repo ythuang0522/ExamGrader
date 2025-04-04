@@ -40,7 +40,7 @@ Run the application with the following command:
 python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [-r <rounds>] [--workers N] [--debug]
 ```
 
-### Input File Types
+### Input Files
 
 The application accepts questions, reference answers, and student's answers as input, which can be PDF or JSON. The exam questions should be numbered 1, 2, 3, and each question can have subparts labeled (a), (b), (c). For example: 1, 2, 3(a), 3(b), 4a, 4b, ...
 
@@ -54,7 +54,28 @@ Example files:
 - Testing and debugging without API calls
 - Manually reviewing and adjusting parsed content (e.g., rubrics)
 
-### Student Answer Types
+### Output Files
+
+The application generates several types of output files during the grading process:
+
+1. **Grading Results (`.txt`)**
+   - Default filename: `{student_filename}_results.txt` (e.g., [411000001_範例_results.txt](Data/411000001_範例_results.txt))
+   - Contains detailed grading report including:
+     - Total score and maximum possible score
+     - Per-question breakdown with:
+       - Question text
+       - Grading rubric (if available)
+       - Student's answer
+       - Correct answer
+       - Score and explanation
+
+2. **Intermediate JSON Files**
+   - Generated during PDF processing:
+     - `{filename}_questions_with_rubrics.json`: Questions with AI-generated rubrics (e.g., [Homework1_2025_questions_rubrics.json](Data/Homework1_2025_questions_with_rubrics.json))
+     - `{filename}_correct_answers.json`: Extracted correct answers
+     - `{filename}_student_answers.json`: Extracted student answers (e.g., [411000001_範例_student_answers.json](Data/411000001_範例_student_answers.json))
+
+### Supported Input Files for Student Answers
 
 The application supports three types of student answer inputs:
 

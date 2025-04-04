@@ -1,0 +1,890 @@
+總分: 98.0/100.0
+
+--------------------------------------------------------------------------------
+
+題號: 1
+
+問題:
+Suppose you are asked to implement the n-th Fibanacci number using recursion only (i.e., no loop implementation). How to avoid stack overflow for large n? Briefly explain your solution.
+
+
+評分標準:
+- 關鍵概念辨識 (4 分)  
+  - 完全：正確指出使用傳統遞迴計算 Fibonacci 數時，過多且重複的遞迴呼叫可能導致堆疊溢位的問題。  
+  - 部分：僅提及遞迴可能遇到問題，但未明確點出堆疊溢位的因果關係。  
+  - 無得分：未提及或完全忽略堆疊溢位問題。
+
+- 解決方案描述 (4 分)  
+  - 完全：清楚提出使用尾端遞迴（tail recursion）或類似的優化策略，例如利用累積參數將遞迴改寫為類似迴圈的結構，以便編譯器進行尾端呼叫優化，從而有效避免堆疊溢位。  
+  - 部分：提及使用優化技術如尾端遞迴，但未說明如何利用累積參數或未闡述機制細節。  
+  - 無得分：僅泛泛而談無具體解決方法，或提出與題意無關方法。
+
+- 實作合理性與效能論述 (2 分)  
+  - 完全：說明所提策略可處理大數值 n 的情況，具體論述如何藉由降低堆疊深度來避免溢位，並闡明該方法的效能優勢。  
+  - 部分：簡單提及方案可用於大 n，但解釋不夠清楚或缺乏效能考量。  
+  - 無得分：完全未提及或論述不符合大 n 情境下避免堆疊溢位的合理性。
+
+標準答案:
+用 recursion, avoid stackoverflow? ⇒ naive 會使呼叫層數過多
+遞迴式: F(n) = F(n-1) + F(n-2) 而 stackoverflow
+<方法一> 記憶化, 把算過的數值存在一個陣列裡, 避免重複計算 ⇒ O(n)
+ex: `int memo[1000000] = {0};`
+`int fib(int n){`
+  `if(n<=1) return n;`
+  `if(memo[n]!=0) return memo[n];` → 沒算過fib才算, 否則算過就可直接查表
+  `return memo[n] = fib(n-1)+fib(n-2);`
+`}`
+<方法二> 使用尾遞迴, 讓回傳的東西只有函數自己 (∵ compiler 可優化)
+ex: `int fib_tail(int n, int a=0, int b=1){`
+  `if(n==0) return a;`
+  `if(n==1) return b;`
+  `return fib_tail(n-1, b, a+b);`
+`}`
+
+**
+
+學生答案:
+用 recursion, avoid stackoverflow? ⇒ naive 會使呼叫層數過多 而 stackoverflow
+遞迴式：F(n)=F(n-1)+F(n-2)
+<法一> 記憶體化, 把算過的數值存在一個陣列裡, 避免重複計算 ⇒ O(n)
+ex: int memo[1000000]={0};
+int fib(int n){
+if(n<=1) return n;
+if(memo[n]!=0) return memo[n]; → 沒算過 fib 才算, 否則算過就可直接查表
+return memo[n] = fib(n-1)+fib(n-2);
+}
+→ tail recursion
+<法二> 使用尾遞迴, 讓回傳的東西只有函數自己 (∵ compiler 可優化)
+ex: int fib_tail(int n, int a=0, int b=1){
+if(n==0) return a;
+if(n==1) return b;
+return fib_tail(n-1, b, a+b);
+}
+
+得分: 10.0/10.0
+
+評分理由: 關鍵概念辨識：給予4分，因為學生正確指出傳統遞迴會因呼叫層數過多而導致堆疊溢位問題。  
+解決方案描述：給予4分，學生清楚提出了兩種解決方案——記憶化和尾遞迴，並且示範了如何利用累積參數進行尾端優化。  
+實作合理性與效能論述：給予2分，學生提及使用記憶化來避免重複計算以及尾遞迴可由編譯器優化，有效避免堆疊溢位，說明合理且具效能優勢。
+--------------------------------------------------------------------------------
+
+題號: 2a
+
+問題:
+T(n) = 2T(n/3) + cn, where c is a constant.
+
+
+評分標準:
+- 主定理參數的正確識別與應用 (3 分)  
+  - 完全得分：明確指出遞迴式為 T(n)=2T(n/3)+cn，正確設定參數 a=2、b=3，並計算出 n^(log₃2)；  
+  - 部分得分：能識別出遞迴形式與參數，但 n^(log₃2) 計算不精確或描述不完整；  
+  - 無得分：未能正確設定主要參數或完全忽略主定理之應用。
+
+- f(n) 與子問題成本比較及正則性檢查 (3 分)  
+  - 完全得分：清楚比較 f(n)=cn 與 n^(log₃2) 的漸進增長，指出 cn 多項式上大於 n^(log₃2) 並說明正則性條件成立；  
+  - 部分得分：有進行比較但關鍵論點（例如多項式相差的程度或正則性檢查）闡述不夠詳盡；  
+  - 無得分：未能正確比較或忽略正則性條件之檢查。
+
+- 漸近解推導與結論陳述 (4 分)  
+  - 完全得分：正確推導得出 T(n)=Θ(n) 的最終解，並提供清晰合理的解釋和論證；  
+  - 部分得分：結論部分正確，但推導過程或解釋不夠完整或存在輕微錯誤；  
+  - 無得分：最終結論錯誤或缺乏必要的推導與解釋。
+
+標準答案:
+**
+(a) T(n) = 2T(n/3) + T(n/2) + cn
+<方法一> 遞迴樹 (∵ 包含2種子問題, 不能直接用 Master Theorem)
+<FIGURE>A recursion tree diagram.
+Level 0: Root node labeled 'cn'. Cost: cn.
+Level 1: The root has three children representing the recursive calls. Two children correspond to T(n/3) and are labeled 'cn/3'. One child corresponds to T(n/2) and is labeled 'cn/2'. The total cost at this level is calculated as cn/3 + cn/3 + cn/2 = 7/6 cn.
+Level 2: Each 'cn/3' node from Level 1 branches into two 'cn/9' nodes and one 'cn/6' node. The 'cn/2' node from Level 1 branches into two 'cn/6' nodes and one 'cn/4' node. The total cost at this level is calculated as 2(cn/9 + cn/9 + cn/6) + (cn/6 + cn/6 + cn/4) = (7/6)^2 cn.
+Further levels are indicated with dots (...).
+A bracket indicates the tree height is approximately log_2 n. </FIGURE>
+T(n) = cn + 7/6 cn + (7/6)^2 cn + ... + (7/6)^(log_2 n - 1) cn + O(n^(log_2 3))
+≤ Σ_{i=0}^{∞} (7/6)^i cn + O(n^(log_2 3)) = (1 / (7/6 - 1)) cn + O(n^(log_2 3)) ⇒ O(n^(log_2 3)) *
+（續）
+<法三 => Master Theorem
+T(n) = 2T(n/3) + T(n/2) + cn ≤ 3T(n/2) + cn 令 cn = f(n)
+log_2 3 => f(n) = O(n^(log_2 3 - ε)) for some constant ε > 0 => T(n) = θ(n^(log_2 3)) *
+
+學生答案:
+(a) T(n) = 2T(n/3) + T(n/2) + cn
+<法一> 遞迴樹 (∵ 包含 2 種子問題, 不能直接用 Master Theorem)
+<FIGURE>A recursion tree is shown.
+The root node has value cn.
+Level 1 has three children nodes with values c(n/3), c(n/3), and c(n/2). The sum of values at this level is calculated as cn/3 + cn/3 + cn/2 = 7/6 cn.
+Level 2 expands from Level 1. The first c(n/3) node has children c(n/9), c(n/9), c(n/6). The second c(n/3) node has children c(n/9), c(n/9), c(n/6). The c(n/2) node has children c(n/6), c(n/6), c(n/4). The sum of values at this level is calculated as 2(c(n/9) + c(n/9) + c(n/6)) + (c(n/6) + c(n/6) + c(n/4)) which simplifies to (7/6)^2 cn.
+The levels continue downwards, indicated by dots (...).
+To the right of the tree, the height is noted as 樹高: log_2 n.</FIGURE>
+T(n) = cn + 7/6 cn + (7/6)^2 cn + ... + (7/6)^(log_3 n - 1) cn + O(n^(log_2 3))
+≤ sum_(i=0)^∞ (7/6)^i cn + O(n^(log_2 3)) = 1/(1-7/6) cn + O(n^(log_2 3)) ⇒ O(n^(log_2 3))
+（續）
+<法三 => Master Theorem T(n)
+T(n) = 2T(n/3) + T(n/2) + cn ≤ 3T(n/2) + cn 令 cn = f(n)
+log_2 3 => f(n) = O(n^(log_2 3 - ε)) for some constant ε>0 => T(n) = Θ(n^(log_2 3)) #
+
+得分: 10.0/10.0
+
+評分理由: - 主定理參數的正確識別與應用：學生在法三部分利用不等式 T(n)=2T(n/3)+T(n/2)+cn ≤ 3T(n/2)+cn，並正確應用 Master Theorem (a=3, b=2, log₂3) 得到結果，因此符合要求，給予3分。  
+- f(n) 與子問題成本比較及正則性檢查：學生明確指出 f(n)=cn 並比較其與 n^(log₂3) 的關係，說明 f(n)=O(n^(log₂3-ε))，正則性檢查也有說明，給予3分。  
+- 漸近解推導與結論陳述：學生利用遞迴樹法展開並推導出 T(n)=Θ(n^(log₂3))，過程清晰合理，給予4分。
+--------------------------------------------------------------------------------
+
+題號: 2b
+
+問題:
+T(n) = 2T(\sqrt{n}) + \lg n (hint: you may replace n with other form)
+
+
+評分標準:
+- 變數替換與遞迴式轉換 (3 pts)  
+  - 完全得分：正確運用變數替換（如令 n = 2^m）並將原式 T(n) = 2T(√n) + lg n 轉換為等價的形式（例如 S(m) = 2S(m/2) + m）。  
+  - 部分得分：嘗試替換但轉換過程中有少數不嚴謹或符號誤用。  
+  - 無得分：未嘗試或完全錯誤的變數替換與轉換。
+
+- 遞迴式求解與複雜度推導 (5 pts)  
+  - 完全得分：正確求解轉換後的遞迴式，能運用主定理、遞迴樹法或其它方法推導出最終的時間複雜度（Θ(lg n · lg (lg n))）。  
+  - 部分得分：部分正確推導但最終答案或論證中存在明顯錯誤或不完整。  
+  - 無得分：未能正確求解遞迴式或全盤推導錯誤。
+
+- 論述過程與步驟解釋 (2 pts)  
+  - 完全得分：全程對每個步驟提供清晰解釋與論證，說明每個變數替換、遞迴關係推導及驗證過程。  
+  - 部分得分：部分步驟有合理說明，但部分關鍵步驟未做解釋或論證不夠詳盡。  
+  - 無得分：未提供必要的論述過程與步驟說明。
+
+標準答案:
+T(n) = 2T(√n) + lg n
+令 k = lg n => n = 2^k => T(2^k) = 2T(2^(k/2)) + k 令 S(k) = T(2^k) => S(k) = 2S(k/2) + k
+By Master Theorem, log_2 2 = 1 => O(k^1) 但 f(n) 亦是 O(k) => S(k) = O(k log k)
+代回 => T(2^k) = O(k log k) => T(n) = O(lg n log lg n)
+也就是 T(n) = O(log n log log n) * (∵ log 通常以 2 為底)
+
+學生答案:
+T(n) = 2T(sqrt(n)) + lgn
+令 k = lgn => n = 2^k => T(2^k) = 2T(2^(k/2)) + k 令 S(k) = T(2^k) => S(k) = 2S(k/2) + k
+By Master Theorem, log_2 2 = 1 => O(k^1) 但 f(k) = k 亦是 Θ(k^log_2 2) = Θ(k) => S(k) = O(klogk)
+代回 => T(2^k) = O(klogk) => T(n) = O(lgn loglgn)
+也就是 T(n) = O(lgn loglgn) # (∵ log 通常以 2 為底)
+
+得分: 10.0/10.0
+
+評分理由: - 變數替換與遞迴式轉換 (3 pts)：學生正確運用了變數替換，設 k = lgn 並得出 T(2^k) = 2T(2^(k/2)) + k，符合題意且轉換正確，因此給予3分。  
+- 遞迴式求解與複雜度推導 (5 pts)：學生正確地應用 Master 定理分析 S(k) = 2S(k/2) + k，並推出 S(k) = O(k log k)，進一步推回 T(n) = O(lgn loglgn)，完全符合預期答案，因此給予5分。  
+- 論述過程與步驟解釋 (2 pts)：學生在每一步都有清楚說明變數替換、遞迴變換以及複雜度分析的過程，論述清楚完整，符合要求，因此給予2分。
+--------------------------------------------------------------------------------
+
+題號: 3
+
+問題:
+Prove that an n-element heap has at most \lceil n/2^{h+1} \rceil nodes at height h.
+
+
+評分標準:
+- 正確識別題目關鍵概念與前提（例如：堆的完整二元樹結構、節點高度的定義以及每層節點數量的基礎性質）（3 分）
+- 正確推導並論證節點數量上界，即利用數學推理（如歸納法、層次分析或指數性遞減的概念）證明 n-element 堆在高度 h 的節點數最多為 ⌈n/2^(h+1)⌉（4 分）
+- 論證過程邏輯清晰、結論明確且嚴謹，證明中的每個步驟都能有效銜接且無重大漏洞或遺漏（3 分）
+
+標準答案:
+heap 為 complete binary tree, 每層都是滿的, 只有最底層可能不滿, 由左到右填充, H = floor(log_2 n), 根: H=0 ; 最底層: H=H node 數
+Hth 層 Max node 數量 = 2^H
+已知 Full Binary Tree 在高度 H 時的 Max node 數量 = 2^(H+1) - 1
+By Mathematical Theorem,
+① 當 h=0 時, 最多有 n/2 個 nodes 在 0 th 層 => 「n / 2^(h+1)」 = 「n / 2^(0+1)」 = 「n/2」成立 (∵ 一半是 leaf, 此時的 h=0 為最底層)
+除了 2 是因為每個子節點最多只有2個, 而第 h 層的 node 來自 (h+1)th
+② 當 h=k 時, 假設在 k th 層時有最多「n / 2^(k+1)」個 nodes 成立
+③ 當 h=k+1 時, 最多有第 k 層 ÷ 2 個 nodes (∵ complete 且 binary)
+即「n / 2^(k+1)」 / 2 = 「n / 2^((k+1)+1)」在 (k+1)th 層, 與假設②相符
+故 n-element heap has at most 「n / 2^(h+1)」nodes at height h #
+
+學生答案:
+heap 為 complete binary tree, 每層都是滿的, 只有最底層可能不滿, 由左到右填充, H = floor(log_2 n), 根: H=0 ; 最底層: H=H (node 數)
+Hth 層 Max node 數量 = 2^H
+已知 Full Binary Tree 在高度 H 時的 Max node 數量 = 2^(H+1) - 1
+By Mathematical Theorem (Induction is likely meant),
+① 當 h=0 時, 最多有 ceil(n/2) 個 nodes 在 0th 層 => ceil(n / 2^(h+1)) = ceil(n / 2^(0+1)) = ceil(n/2) 成立 (∵ 一半是 leaf, 此時的 h=0 為最底層)
+除 2 是因為每個子節點最多只有 2 個, 而第 h 層的 node 來自 (h+1)th (Note: This reasoning seems reversed; nodes at h+1 are parents of nodes at h)
+② 當 h=k 時, 假設在 k th 層時有最多 ceil(n / 2^(k+1)) 個 nodes 成立
+③ 當 h=k+1 時, 最多有第 k 層 ÷ 2 個 nodes (∵ complete 且 binary)
+即 ceil(n / 2^(k+1)) / 2 = ceil(n / 2^((k+1)+1)) 在 (k+1)th 層, 與假設②相符 (Note: The equality shown uses properties of ceiling division, specifically ceil(ceil(x)/2) = ceil(x/2))
+故 n-element heap has at most ceil(n / 2^(h+1)) nodes at height h #
+
+得分: 10.0/10.0
+
+評分理由: - 題目關鍵概念與前提（3 分）：學生答案正確指出堆是完全二元樹，每層滿的特性以及最底層可能不滿，符合關鍵概念，故給予3分。  
+- 節點數量上界推導（4 分）：學生利用歸納法來證明每層節點數的上界，並正確引入天花板函數，邏輯上與參考答案一致，故給予4分。  
+- 論證過程邏輯清晰且嚴謹（3 分）：雖然部分說明中順序略有頓誤，但整體論證連貫，每一步均有效連接，結論明確，符合評分標準，給予3分。
+--------------------------------------------------------------------------------
+
+題號: 4
+
+問題:
+The radix sort can achieve time complexity better than all the comparison-based sorting algorithms (e.g., merge sort, quick sort). Why do all the programming languages still implement comparison-based sorting algorithms as the build-in function (e.g., qsort in C)?
+
+
+評分標準:
+- 關鍵概念識別與論述 (2 分)：  
+  完整回答需指出基數排序雖理論上時間複雜度較低，但此效能依賴特定資料條件（如固定長度、特殊格式或額外空間需求），因此僅適用於部分情境。  
+  • 完全提及上述關鍵點，得 2 分。  
+  • 僅提及部分條件或模糊描述，得 1 分。  
+  • 未提及或答非重點，得 0 分。
+
+- 比較型排序成為內建函式的理由 (2 分)：  
+  回答應強調比較型排序在通用性方面的優勢，包括對各種資料類型的適用性、較低的額外資源要求以及穩定且良好的平均效能。  
+  • 若論述充分且涵蓋這些點，得 2 分。  
+  • 若只提及其中一至兩點，得 1 分。  
+  • 未提及或論述錯誤，得 0 分。
+
+- 條理與論證的完整性及清晰度 (1 分)：  
+  回答需邏輯清楚、結構完整，能有機結合各論點。  
+  • 條理分明、表述清晰，得 1 分。  
+  • 表述混亂或結構欠缺，得 0 分。
+
+標準答案:
+① Radix Sort 只能排序 整數、固定長度字串
+Comparison-based Sorting 可處理任意 data type, ex: float, double
+② 比較排序在一般情況下實用穩定, 常數時間開銷稍低,
+而且通用性、易用性在各環境下一致性高
+③ Radix Sort 只適用鍵值大小固定且小的資料, 需要額外空間
+且當 key 太大, O(d(n+k)) 會大於 Comparison-based Sorting 的 O(nlogn)
+
+學生答案:
+① Radix Sort 只能排序 整數、固定長度字串
+Comparison-based Sorting 可處理任意 data type, ex: float, double
+② 比較排序在一般情況下實用穩定，常數時間開銷有高低，
+而且通用性、易用性在各環境下一致性高
+③ Radix Sort 只適用鍵值大小固定且小的資料，需要額外空間
+且當 key 太大, O(d(n+k)) 會大於 Comparison-based Sorting 的 O(nlogn)
+
+得分: 5.0/5.0
+
+評分理由: ① 關鍵概念識別與論述（2分）：學生答案明確指出基數排序只適用於整數和固定長度字串，並補充了額外空間需求與鍵值限制，涵蓋了所有關鍵條件，故給2分。  
+② 比較型排序成為內建函式的理由（2分）：答案強調比較排序對各種資料類型的適用性、穩定性以及一致性與低常數開銷，全面涵蓋了通用性的優勢，故給2分。  
+③ 條理與論證的完整性及清晰度（1分）：學生答案條理分明，編號清晰且結構完整，論點表述明確，故給1分。
+--------------------------------------------------------------------------------
+
+題號: 5
+
+問題:
+Consider a stick of length m meters that has to be cut at s_1, s_2, ..., s_n meters from left end, where m and s_i are all integers and the cut order of s_i can be any permutation. The cost of each cut s_i is the length of stick prior to the cut, and thus different permutation of cut order leads to different cost. Illustrate a dynamic programming algorithm for finding the minimum cut cost of a stick of length 30, which will be cut at 3, 6, 12, 17, 22, and 28 meters from left end. You should write down the recurrence, bottom-up DP computation, and backtrack one optimal solution.
+
+
+評分標準:
+- 正確描述遞迴式與基礎條件 (3 分)：  
+  - 完全回答者必須寫出正確的遞迴關係（包含切分成本的公式，以及如何處理邊界條件）並清楚解釋其推導過程。  
+  - 若遞迴式正確但說明不夠完整或有小部分誤差，給予部分分；若完全缺乏正確遞迴式及解釋，則不得分。
+
+- 完整呈現自底向上 DP 計算過程 (4 分)：  
+  - 完全回答者需以表格或步驟形式清楚列出各子問題的計算順序，展示如何從最小子問題逐步求得整體問題的最小成本。  
+  - 若計算過程中有步驟缺漏、計算錯誤或表達不清，應依錯誤程度給予部分分；完全缺失此部分則不得分。
+
+- 正確回溯並呈現一個最佳切割順序 (3 分)：  
+  - 完全回答者必須利用 DP 表格正確回溯，並清楚指出一個能達到最小成本的切割順序，同時附上必要的說明。  
+  - 若回溯過程僅部分正確或敘述不完整，則給予部分分；完全缺失回溯或解答結果錯誤，則不得分。
+
+標準答案:
+`dp[i][j] = min (dp[i][k] + dp[k][j] + (S[j]-S[i]))` for `i < k < j` (`k = 含有切割點`)
+`dp[i][j] = 長度 i 到 j 的最小成本` (`i = 左界`, `j = 右界`, `S[j]-S[i] = 長度 j 到 i 的成本`)
+S = {0, 3, 6, 12, 17, 22, 28, 30}, Bottom-up DP:
+| dp[i][j] | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+|   | 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |
+| 0 | 0 | 0 | 6 | 18 | 34 | 50 | 72 | 84 |
+| 1 | 3 |   | 0 | 9 | 23 | 35 | 59 | 70 |
+| 2 | 6 |   |   | 0 | 11 | 26 | 44 | 56 |
+| 3 | 12 |   |   |   | 0 | 10 | 26 | 36 |
+| 4 | 17 |   |   |   |   | 0 | 11 | 21 |
+| 5 | 22 |   |   |   |   |   | 0 | 8 |
+| 6 | 28 |   |   |   |   |   |   | 0 |
+| 7 | 30 |   |   |   |   |   |   |   | 0 |
+① 對角線皆為 0 ⇒ 自己&自己不可切割
+② dp[i][i+1] = 0 ⇒ 只有相鄰點不需切割
+③ 長度 2:
+S[0] = 0 ~ S[2] = 6
+(1) `dp[0][2] = dp[0][1] + dp[1][2] + (6-0) = 0 + 0 + 6 = 6`
+(2) `dp[1][3] = dp[1][2] + dp[2][3] + (12-3) = 0 + 0 + 9 = 9`
+(3) 同理, `dp[2][4] = 17-6 = 11`; `dp[3][5] = 22-12 = 10`
+`dp[4][6] = 28-17 = 11`; `dp[5][7] = 30-22 = 8`
+④ 長度 3: `dp[0][3] = min (dp[0][k] + dp[k][3] + 12)` where `0 < k < 3`
+`= dp[0][2] + dp[2][3] + 12 = 18`
+⑤ 同理，處理長度從 4~7 的 dp, 最終得到 dp[0][7] = 84 *
+dp[0][3] + dp[3][7] + 30
+Back Trace:
+| dp[i][j] | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|----------|---|---|---|---|---|---|---|---|
+|   |   | 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |
+| 0 | 0 | 0 | 0 | 6 | 18 | 34 | 50 | 72 | 84 |
+| 1 | 3 |   | 0 | 0 | 9 | 23 | 35 | 59 | 70 |
+| 2 | 6 |   |   | 0 | 0 | 11 | 26 | 44 | 56 |
+| 3 | 12 |  |   |   | 0 | 0 | 10 | 26 | 36 |
+| 4 | 17 |  |   |   |   | 0 | 0 | 11 | 21 |
+| 5 | 22 |  |   |   |   |   | 0 | 0 | 8 |
+| 6 | 28 |  |   |   |   |   |   | 0 | 0 |
+| 7 | 30 |  |   |   |   |   |   |   | 0 |
+令 bestcut[i][j] 為最佳切割點
+| best cut | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|----------|---|---|---|---|---|---|---|---|
+|   |   | 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |
+| 0 | 0 | 0 | 0 | 3 | 6 | 6 | 12 | 12 | 12 |
+| 1 | 3 |   | 0 | 0 | 6 | 6 | 17 | 17 | 22 |
+| 2 | 6 |   |   | 0 | 0 | 12 | 12 | 22 | 22 |
+| 3 | 12 |  |   |   | 0 | 0 | 17 | 17 | 22 |
+| 4 | 17 |  |   |   |   | 0 | 0 | 22 | 28 |
+| 5 | 22 |  |   |   |   |   | 0 | 0 | 28 |
+| 6 | 28 |  |   |   |   |   |   | 0 | 0 |
+| 7 | 30 |  |   |   |   |   |   |   | 0 |
+記錄最佳切割點
+從 best cut 表中查詢
+<FIGURE>A diagram illustrating the backtracing process to find the optimal cuts. It starts with `bestcut[0][7]=12`, leading to the interval (0, 12) and (12, 30).
+From (0, 12), `bestcut[0][3]=6` (this seems incorrect based on the table, table shows `bestcut[0][3]=3`, let's assume the diagram follows its own logic or refers to a different calculation step, the diagram says `bestcut[0][3]=6`, then leads to (0, 6) and (6, 12). From (0, 6), it further branches to (0, 3) and (3, 6) based on `cut 3`.
+From (12, 30), it goes to `cut 22`, leading to (12, 22) and (22, 30). From (12, 22), it goes to `cut 17`, leading to (12, 17) and (17, 22). From (22, 30), it goes to `cut 28`, leading to (22, 28) and (28, 30).
+Arrows point from parent intervals to child intervals resulting from cuts.
+The cuts identified are 12, 6, 3, 22, 17, 28.
+The calculation flow shown:
+`bestcut[0][7]=12` -> (0, 12) and (12, 30)
+(0, 12) -> `cut 6` (`bestcut[0][3]=6` is referenced, but applies to interval (0,12)? Indexing mismatch?) -> (0, 6) and (6, 12)
+(0, 6) -> `cut 3` -> (0, 3) and (3, 6)
+(12, 30) -> `cut 22` -> (12, 22) and (22, 30)
+(12, 22) -> `cut 17` -> (12, 17) and (17, 22)
+(22, 30) -> `cut 28` -> (22, 28) and (28, 30)</FIGURE>
+① 先切12 ⇒ (0, 12)
+∵ bestcut[0][3]=6 (Should be bestcut[0][7]=12 first?)
+↓切6
+(0, 6) & (6, 12)
+↓切3
+(0, 3) & (3, 6)
+② 再切22 ← (12, 30)
+(12, 22) (22, 30)
+↓切17 ↓切28
+(12, 17) & (17, 22) (22, 28) & (28, 30)
+A: 12, 6, 3, 22, 17, 28 *
+
+學生答案:
+dp[i][j] = min_{i<k<j} (dp[i][k] + dp[k][j] + (S[j]-S[i])) ⤴︎k=欲切割點
+i=左界 j=右界 S[j]-S[i] = 長度j到i的成本
+dp[i][j] = 長度i到j的最小成本
+S = {0, 3, 6, 12, 17, 22, 28, 30} , Bottom-up DP:
+| dp[i][j] | 0 (S=0) | 1 (S=3) | 2 (S=6) | 3 (S=12) | 4 (S=17) | 5 (S=22) | 6 (S=28) | 7 (S=30) |
+|----------|---------|---------|---------|----------|----------|----------|----------|----------|
+| 0 (S=0)  | 0       | 0       | 6       | 18       | 34       | 50       | 72       | 84       |
+| 1 (S=3)  |         | 0       | 0       | 9        | 23       | 35       | 59       | 70       |
+| 2 (S=6)  |         |         | 0       | 0        | 11       | 26       | 44       | 56       |
+| 3 (S=12) |         |         |         | 0        | 0        | 10       | 26       | 36       |
+| 4 (S=17) |         |         |         |          | 0        | 0        | 11       | 21       |
+| 5 (S=22) |         |         |         |          |          | 0        | 0        | 8        |
+| 6 (S=28) |         |         |         |          |          |          | 0        | 0        |
+| 7 (S=30) |         |         |         |          |          |          |          | 0        |
+① 對角線皆為0 ⇒ 自己 & 自己不可切割
+② dp[i][i+1] = 0 ⇒ 只有相鄰點不需切割
+③ 長度2:
+S[0]=0 ~ S[2]=6
+(1) dp[0][2] = dp[0][1] + dp[1][2] + (6-0) = 0+0+6 = 6
+(2) dp[1][3] = dp[1][2] + dp[2][3] + (12-3) = 0+0+9 = 9
+(3) 同理, dp[2][4] = 17-6=11 ; dp[3][5] = 22-12=10
+dp[4][6] = 28-17=11 ; dp[5][7] = 30-22=8
+④ 長度3: dp[0][3] = min_{0<k<3} (dp[0][k] + dp[k][3] + 12)
+= dp[0][2] + dp[2][3] + 12 = 18
+⑤ 同理，處理長度從 4~7 的dp, 最終得到 dp[0][7] = 84※
+dp[0][3] + dp[3][7] + 30
+
+Back Trace:
+| dp[i][j] | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+|  | 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |
+| 0 | 0 | 0 | 0 | 6 | 18 | 34 | 50 | 72 | 84 |
+| 1 | 3 |  | 0 | 0 | 9 | 23 | 35 | 59 | 70 |
+| 2 | 6 |  |  | 0 | 0 | 11 | 26 | 44 | 56 |
+| 3 | 12 |  |  |  | 0 | 0 | 10 | 26 | 36 |
+| 4 | 17 |  |  |  |  | 0 | 0 | 11 | 21 |
+| 5 | 22 |  |  |  |  |  | 0 | 0 | 8 |
+| 6 | 28 |  |  |  |  |  |  | 0 | 0 |
+| 7 | 30 |  |  |  |  |  |  |  | 0 |
+令 bestcut[i][j] 為最佳切割點
+| best cut | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|---|---|
+|  | 0 | 3 | 6 | 12 | 17 | 22 | 28 | 30 |
+| 0 | 0 | 0 | 0 | 3 | 6 | 6 | 12 | 12 | 12 |
+| 1 | 3 |  | 0 | 0 | 6 | 6 | 17 | 17 | 22 |
+| 2 | 6 |  |  | 0 | 0 | 12 | 12 | 22 | 22 |
+| 3 | 12 |  |  |  | 0 | 0 | 17 | 17 | 22 |
+| 4 | 17 |  |  |  |  | 0 | 0 | 22 | 28 |
+| 5 | 22 |  |  |  |  |  | 0 | 0 | 28 |
+| 6 | 28 |  |  |  |  |  |  | 0 | 0 |
+| 7 | 30 |  |  |  |  |  |  |  | 0 |
+記錄最佳切割點
+
+<FIGURE>A diagram illustrating the backtracing process to find the optimal cuts. It starts with the interval (0, 30).
+Arrow points down with text "① 先切12 ⇒ (0, 12)". This implies bestcut[0][7] leads to cutting at 12.
+From (0, 12), an arrow points left with text "∴bestcut[0][3]=6" and "↓切6". This leads to intervals (0, 6) and (6, 12).
+From (12, 30), an arrow points right with text "(12, 30)" and "② 再切22 ← 從 best cut 表中查詢". This leads to intervals (12, 22) and (22, 30).
+From (0, 6), an arrow points left with text "↓切3". This leads to intervals (0, 3) and (3, 6).
+From (6, 12), text "& (6, 12)" indicates no further cut.
+From (12, 22), an arrow points down with text "↓切17". This leads to intervals (12, 17) and (17, 22).
+From (22, 30), an arrow points down with text "↓切28". This leads to intervals (22, 28) and (28, 30).
+The identified cuts are 12, 6, 22, 3, 17, 28.</FIGURE>
+A: 12, 6, 3, 22, 17, 28※
+
+得分: 10.0/10.0
+
+評分理由: 遞迴式與基礎條件表述完全正確（3分），自底向上DP計算過程包括表格和步驟皆清楚展示且與參考答案一致（4分），回溯過程正確呈現一個最佳切割順序並最終得到相同的切割點（3分）。
+--------------------------------------------------------------------------------
+
+題號: 6a
+
+問題:
+Write the optimal substructure (recurrence) of computing LCS of k sequences, where k = 3
+
+
+評分標準:
+- 正確表示匹配情況的遞迴關係：當三個序列当前字符相同 (例如 a[i]=b[j]=c[k]) 時，正確表達 LCS[i,j,k] = 1 + LCS[i-1, j-1, k-1]。（2 分；若條件或索引更新部分有誤或不完整則給部分分數）
+- 正確表示不匹配情況的遞迴關係：當至少一個字符不匹配時，正確表達 LCS[i,j,k] = max(LCS[i-1, j, k], LCS[i, j-1, k], LCS[i, j, k-1])。（2 分；若漏掉部分子問題或運算有誤則給部分分數）
+- 清楚定義變數與說明遞迴的最優子結構概念：包含必要的索引定義與邊界條件（例如初始值設定或說明遞迴邏輯）。（1 分；說明不完整或缺失則扣分）
+
+標準答案:
+設 dp[i][j][k] 為 "前 i 個字符的序列 A, 前 j 個字符的序列 B 前 k 個字符的序列 C, 對應的 LCS 長度"
+dp[i][j][k] = { dp[i-1][j-1][k-1] + 1 , if A[i] = B[j] = C[k]
+{ max(dp[i-1, j, k], dp[i, j-1, k], dp[i, j, k-1]) , o.w.
+and dp[i][0][k] = dp[0][j][k] = dp[i][j][0] = 0
+
+學生答案:
+設 dp[i][j][k] 為 "前 i 個字符的序列 A, 前 j 個字符的序列 B 前 k 個字符的序列 C, 對應的 LCS 長度"
+dp[i][j][k] = { dp[i-1][j-1][k-1] + 1 , if A[i] = B[j] = C[k] ; max(dp[i-1,j,k], dp[i,j-1,k], dp[i,j,k-1]) , o.w. }
+and dp[i][0][k] = dp[0][j][k] = dp[i][j][0] = 0
+
+得分: 5.0/5.0
+
+評分理由: - 正確表示匹配情況的遞迴關係：學生答案正確地使用 dp[i-1][j-1][k-1] + 1 當 A[i] = B[j] = C[k] 時，因此得 2 分。  
+- 正確表示不匹配情況的遞迴關係：學生答案完整並正確地使用 max(dp[i-1,j,k], dp[i,j-1,k], dp[i,j,k-1])，因此得 2 分。  
+- 清楚定義變數與說明遞迴的最優子結構概念：學生明確定義了 dp 的意義並提供了邊界條件 (dp[i][0][k] = dp[0][j][k] = dp[i][j][0] = 0)，因此得 1 分。
+--------------------------------------------------------------------------------
+
+題號: 6b
+
+問題:
+Given a string, find the longest subsequence occurring at least twice in the string, requiring their indices must not overlap. e.g., Given ATATAGAGGC, the answer is 4 since ATAG occurs twice and their indices (i.e., (1,2,5,6) and (3,4,7,8)) do not overlap. Describe a dynamic programming (recurrence) for the string ATTAATAT. You should show the bottom-up tabular computation.
+
+
+評分標準:
+- 動態規劃遞推公式的正確描述與解釋 (4 分)  
+  - 完全得分：正確定義狀態 (如 DP[i][j])、說明如何確認字符匹配且索引不重疊（i ≠ j），以及遞推公式的更新條件。  
+  - 部分得分：遞推公式描述不夠完整或缺少防止重疊的條件，但能表達出部分正確思路。  
+  - 無得分：未描述遞推公式或描述完全錯誤。
+
+- 自底向上表格計算的正確展示 (3 分)  
+  - 完全得分：依據字串 ATTAATAT 完整填寫 DP 表格，每步計算清楚明確，最終結果正確。  
+  - 部分得分：表格計算過程有部分錯誤或缺失，但能看出理解底層計算的基本流程。  
+  - 無得分：未展示底層表格計算過程或計算結果明顯錯誤。
+
+- 解題思路與推導過程的清晰論述 (3 分)  
+  - 完全得分：全面解釋解題思路、遞推關係的由來以及如何從表格中讀出最終答案，邏輯嚴謹。  
+  - 部分得分：論述過程有邏輯但不夠完整或詳盡，未涵蓋所有關鍵步驟。  
+  - 無得分：解題思路混亂或完全缺失推導過程。
+
+標準答案:
+設 dp[i][j] 為 "以 ith 字符結束的前綴與 以 jth 字符結束的前綴的最長相同 LRS 子序列長度"
+（續）
+dp[i][j] = { dp[i-1][j-1]+1 if S[i]=S[j] 且 i≠j and 0 if i=0 v j=0, max(dp[i-1][j], dp[i][j-1]) o.w. }
+| i\j |   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|-----|---|---|---|---|---|---|---|---|---|---|
+|     | Yj|   | A | T | T | A | A | T | A | T |
+| 0   | Xi| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 1   | A | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 |
+| 2   | T | 0 | 0 | 1 | 1 | 1 | 1 | 2 | 2 | 2 |
+| 3   | T | 0 | 0 | 1 | 2 | 2 | 2 | 2 | 2 | 3 |
+| 4   | A | 0 | 1 | 1 | 2 | 2 | 3 | 3 | 3 | 3 |
+| 5   | A | 0 | 1 | 1 | 2 | 3 | 3 | 3 | 4 | 4 |
+| 6   | T | 0 | 1 | 2 | 2 | 3 | 3 | 4 | 4 | 4 |
+| 7   | A | 0 | 1 | 2 | 2 | 3 | 4 | 4 | 4 | 4 |
+| 8   | T | 0 | 1 | 2 | 3 | 3 | 4 | 4 | 4 | 4 |
+Bottom Up 依序填表，
+例如 dp[1][4] 來自 dp[0][3]+1, 因 A 和 A 對應; dp[1][6] = max(dp[1][5], dp[0][6]) 以此類推
+Back Trace 是利用 dp[8][8]=4, 往左、上、左上角找，若該元素 = 左上角元素+1 則輸出
+A: ATAT, 長度 4 ※
+
+學生答案:
+設 dp[i][j] 為 "以 ith 字符結束的前綴 與 以 jth 字符結束的前綴 的最長相同 LRS 子序列長度"
+（續）
+dp[i][j] = { dp[i-1][j-1]+1 if S[i]=S[j] 且 i≠j and 0 if i=0 v j=0, max(dp[i-1][j], dp[i][j-1]) o.w.
+| i\j |   | 0 | 1 Yj | 2 A | 3 T | 4 T | 5 A | 6 A | 7 T | 8 A |
+|-----|---|---|------|-----|-----|-----|-----|-----|-----|-----|
+| 0   | Xi| 0 | 0    | 0   | 0   | 0   | 0   | 0   | 0   | 0   |
+| 1   | A | 0 | 0    | 1   | 1   | 1   | 1   | 1   | 1   | 1   |
+| 2   | T | 0 | 0    | 1   | 2   | 2   | 2   | 2   | 2   | 2   |
+| 3   | T | 0 | 0    | 1   | 2   | 3   | 3   | 3   | 3   | 3   |
+| 4   | A | 0 | 1    | 1   | 2   | 3   | 3   | 4   | 4   | 4   |
+| 5   | A | 0 | 1    | 2   | 2   | 3   | 4   | 4   | 4   | 5   |
+| 6   | T | 0 | 1    | 2   | 3   | 3   | 4   | 4   | 5   | 5   |
+| 7   | A | 0 | 1    | 2   | 3   | 3   | 4   | 5   | 5   | 6   |
+| 8   | T | 0 | 1    | 2   | 3   | 4   | 4   | 5   | 6   | 6   |
+[Figure: The table is a 9x9 dynamic programming grid. The rows (i from 1 to 8) correspond to the characters of the string Xi = ATTAATAT. The columns (j from 1 to 8) correspond to the characters of the string Yj = ATTAATAT. The cells contain integer values representing lengths of common subsequences. Arrows indicate the path taken to compute the values: diagonally up-left (↖) for matching characters, upwards (↑) or leftwards (←) for non-matching characters, taking the maximum value. Specifically, arrows point from (1,2) to (0,1), (2,3) to (1,2), (3,4) to (2,3), (4,1) left to (4,0), (4,6) to (3,5), (5,2) to (4,1), (5,5) to (4,4), (5,8) to (4,7), (6,3) to (5,2), (6,7) to (5,6), (7,6) to (6,5), (7,8) to (6,7), (8,4) to (7,3), (8,7) to (7,6). There are additional implied arrows based on the DP calculation logic shown by faint highlights and arrows suggesting a path starting from dp[8][8]=6 leading to the subsequence ATATAT of length 6. However, the written explanation below gives ATAT length 4.]
+Bottom Up 依序填表.
+例如 dp[1][4] 來自 dp[0][3]+1, 因 A 和 A 對應; dp[1][6] = max(dp[1][5], dp[0][6]) 以此類推
+Back Trace 是利用 dp[8][8]=4, 往左 v 上 v 左上角找, 若該元素 = 左上角元素+1 則輸出
+A: ATAT, 長度 4 #
+
+得分: 8.0/10.0
+
+評分理由: - 动态规划递推公式的正確描述与解釋 (4 分)：學生答案正确定義了 dp[i][j] 的含義，给出了当字符匹配且 i≠j 时更新为 dp[i-1][j-1]+1，以及非匹配时取 max(dp[i-1][j], dp[i][j-1])，同时说明了空情形，符合要求，因此满分。  
+- 自底向上表格計算的正確展示 (3 分)：學生提供了一个 DP 表格来展示计算过程，但表格中的数值与最終答案存在不一致（例如表中 dp[8][8] 显示为 6，而後文說明用 dp[8][8]=4 得出答案），因此部分正確，給予部分分數。  
+- 解題思路与推導過程的清晰論述 (3 分)：雖然學生说明了填表与回溯的过程，并指出最终答案为 “ATAT” 长度 4，但解釋中出现了與表格計算結果不一致的问题，逻辑描述基本清晰，但有部分混淆，故给予部分分數。
+--------------------------------------------------------------------------------
+
+題號: 6c
+
+問題:
+Compute the Longest Palindrome Subsequence (LPS) in any sequence using dynamic programming. Given a string “character,” the LPS is “carac.” You should write down the recurrence and bottom-up tabular computation.
+
+
+評分標準:
+- 正確且完整地描述遞迴關係 (4 分)  
+  - 全額：正確說明基本情況 (base case) 與遞迴公式（例如：若 s[i] = s[j] 則 dp[i][j] = dp[i+1][j-1] + 2，否則 dp[i][j] = max(dp[i+1][j], dp[i][j-1]）  
+  - 部分：遞迴關係描述部分正確，但缺少關鍵細節或表達不夠清楚  
+  - 未作答：未提供遞迴關係或完全錯誤
+
+- 清楚詳盡地展示底向上表格計算步驟 (3 分)  
+  - 全額：完整說明如何初始化 DP 表格，如何依序填表，並以示例展示計算過程  
+  - 部分：對表格填寫與初始化有部分解釋，但步驟描述不完整或存在概念混淆  
+  - 未作答：未提供底向上表格計算或解釋過程不具參考性
+
+- 結果正確及解題邏輯條理分明 (3 分)  
+  - 全額：最終答案正確（例如對 "character" 得到 "carac"），並具備邏輯清晰的解題說明  
+  - 部分：最終答案或說明部分正確，但過程中存在邏輯不連貫或關鍵細節缺失  
+  - 未作答：最終答案錯誤或解題說明混亂，無法展現正確思路
+
+標準答案:
+LPS 即反轉後的原字串 + 原字串 ⇒
+dp[i][j] = { dp[i-1][j-1]+1 if S[i]=S[j], max(dp[i-1][j], dp[i][j-1]) o.w. } and 0 if i=0 v j=0
+| i\j |   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|-----|---|---|---|---|---|---|---|---|---|---|---|
+|     | Yj|   | c | h | a | r | a | c | t | e | r |
+| 0   | Xi| 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| 1   | r | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 |
+| 2   | e | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 2 | 2 |
+| 3   | t | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 2 | 2 | 2 |
+| 4   | c | 0 | 1 | 1 | 1 | 1 | 1 | 2 | 2 | 2 | 2 |
+| 5   | a | 0 | 1 | 1 | 2 | 2 | 2 | 2 | 2 | 2 | 2 |
+| 6   | r | 0 | 1 | 1 | 2 | 3 | 3 | 3 | 3 | 3 | 3 |
+| 7   | a | 0 | 1 | 1 | 2 | 3 | 4 | 4 | 4 | 4 | 4 |
+| 8   | h | 0 | 1 | 2 | 2 | 3 | 4 | 4 | 4 | 4 | 4 |
+| 9   | c | 0 | 1 | 2 | 2 | 3 | 4 | 5 | 5 | 5 | 5 |
+Bottom Up 依序填表，
+例如 dp[1][4] 來自 dp[0][3]+1, 因 r 和 r 對應; dp[1][6] = max(dp[1][5], dp[0][6]) 以此類推
+Back Trace 是利用 dp[9][9]=5, 往左、上、左上角找，若該元素 = 左上角元素+1 則輸出
+A: carac, 長度 5 ※
+
+學生答案:
+b. cc) LPS 即反轉後的原字串 + 原字串 =>
+dp[i][j] = { dp[i-1][j-1]+1 if S[i]=S[j] and 0 if i=0 v j=0, max(dp[i-1][j], dp[i][j-1]) o.w.
+| i\j |   | 0 | 1 Yj | 2 c | 3 h | 4 a | 5 r | 6 a | 7 c | 8 t | 9 e |
+|-----|---|---|------|-----|-----|-----|-----|-----|-----|-----|-----|
+| 0   | Xi| 0 | 0    | 0   | 0   | 0   | 0   | 0   | 0   | 0   | 0   |
+| 1   | v | 0 | 0    | 0   | 0   | 0   | 0   | 0   | 0   | 0   | 0   |
+| 2   | e | 0 | 0    | 0   | 0   | 0   | 0   | 0   | 0   | 0   | 1   |
+| 3   | t | 0 | 0    | 0   | 0   | 0   | 0   | 0   | 0   | 1   | 1   |
+| 4   | c | 0 | 1    | 1   | 1   | 1   | 1   | 1   | 1   | 1   | 1   |
+| 5   | a | 0 | 1    | 1   | 1   | 2   | 2   | 2   | 2   | 2   | 2   |
+| 6   | r | 0 | 1    | 1   | 1   | 2   | 3   | 3   | 3   | 3   | 3   |
+| 7   | a | 0 | 1    | 1   | 1   | 2   | 3   | 4   | 4   | 4   | 4   |
+| 8   | h | 0 | 1    | 1   | 2   | 2   | 3   | 4   | 4   | 4   | 4   |
+| 9   | c | 0 | 1    | 2   | 2   | 2   | 3   | 4   | 5   | 5   | 5   |
+[Figure: The table is a 10x10 dynamic programming grid. Rows (i from 1 to 9) correspond to Xi = vetcarahc. Columns (j from 1 to 9) correspond to Yj = character. Cells contain integer values. Arrows indicate the computation path. Highlights and arrows suggest a path starting from dp[9][9]=5, going left multiple times to dp[9][6]=5 (match 'c', go diagonal), then to dp[8][5]=4, then up to dp[7][5]=4 (match 'a', go diagonal), then to dp[6][4]=3, then to dp[6][3]=2 (match 'r', go diagonal), then to dp[5][2]=2 (match 'a', go diagonal), then to dp[4][1]=1 (match 'c', go diagonal), leading to the subsequence 'carac' of length 5.]
+Bottom Up 依序填表.
+例如 dp[1][4] 來自 dp[0][3]+1, 因 r 和 r 對應; dp[1][6] = max(dp[1][5], dp[0][6]) 以此類推
+Back Trace 是利用 dp[9][9]=5, 往左 v 上 v 左上角找, 若該元素 = 左上角元素+1 則輸出
+A: carac, 長度 5 #
+```
+
+得分: 10.0/10.0
+
+評分理由: - 遞迴關係（4分）：學生提供的遞迴公式與base case說明與參考答案一致，正確描述了當字符相等時加1、不相等時取最大值的關係，獲得全分。
+- 底向上表格計算步驟（3分）：學生提供了完整的DP表格並標示了計算過程與初始化步驟，說明如何依序填表，達到題目要求，獲得全分。
+- 結果及解題邏輯（3分）：最終答案 "carac" 與長度5正確，且背蹤追溯的過程解釋清楚，邏輯條理明確，獲得全分。
+--------------------------------------------------------------------------------
+
+題號: 7
+
+問題:
+Consider the knapsack problem of n items and W pack size. Suppose the pack/item sizes are very large and the item values are very small. Give a dynamic programming (recurrence) for solving this problem. Illustrate your tabular computation using the following example (W=350).
+[TABLE]
+
+
+評分標準:
+- 動態規劃遞迴公式的正確性與完整性（4 分）
+  - 滿分：正確定義狀態（例如 dp[i][v] 表示考慮前 i 項以獲得價值 v 的最小重量或其他對應描述）、明確表示「不取物品」與「取物品」兩種選擇的遞迴轉移，並包含適當的初始條件。
+  - 部分：公式基本正確但缺少初始條件或部分細節，或對狀態定義不夠精確。
+  - 無分：遞迴公式錯誤、關鍵選擇未體現或無初始條件。
+
+- 表格計算示例的準確展示與步驟完整性（4 分）
+  - 滿分：根據例子（W=350）正確利用表格展示每一階段的計算過程，清楚標示每次選擇物品對狀態更新的影響，最終能正確推導出最優解。
+  - 部分：表格展示部分計算步驟或中間結果正確，但關鍵步驟遺漏或細節不夠完整。
+  - 無分：表格計算展示錯誤、過程混亂或與題目要求不符。
+
+- 解題思路與說明的清晰性（2 分）
+  - 滿分：能夠清楚闡述選擇此動態規劃方法的原因，包括因物品尺寸大、價值小而採用以價值為狀態參數（或其他合理轉換）的策略，以及每步選擇的邏輯和意義。
+  - 部分：能大致描述思路，但論述不夠精確或缺乏關鍵動機說明。
+  - 無分：無法正確表達解題思路或解釋不清。
+
+標準答案:
+令 Vi 為 ith 物品的 value, Wi 為 ith 物品的 weight, W 為 max capacity, B[k,w] 表示前 k 個物品在容量 W 下的 Max value
+令 B[k,w] = { B[k-1, w] if w < Wk 以 weight 為主方法; Max((B[k-1, w], B[k-1, w-Wk]+bk)) o.w. } bk = 第k個物品的value
+初使時若 k=0 or w=0 => 0; B[0, w] 都為 0
+| item | Wi  | Vi |
+|------|-----|----|
+| 1    | 100 | 1  |
+| 2    | 150 | 2  |
+| 3    | 200 | 3  |
+| 4    | 300 | 4  |
+| item \ w | 0 | 100 | 150 | 200 | 250 | 300 | 350 |
+|----------|---|-----|-----|-----|-----|-----|-----|
+| 0        | 0 | 0   | 0   | 0   | 0   | 0   | 0   |
+| X 1      | 0 | 1   | 1   | 1   | 1   | 1   | 1   |
+| ✓ 2      | 0 | 1   | 2   | 2   | 3   | 3   | 3   |
+| ✓ 3      | 0 | 1   | 2   | 3   | 3   | 4   | 5   |
+| X 4      | 0 | 1   | 2   | 3   | 3   | 4   | 5   |
+旁邊的計算: 2-2=0, 5-3=2
+A= value=5 #
+因此題 weight 較 value 大, 以 value 為主
+dp[v, i] = { 0 if v=0; ∞ if i=0, v>0; min(dp[v, i-1], dp[v-vi, i-1]+wi) o.w. }
+(Notes beside the formula: `vi -> ith 物品 value`, `wi -> ith 物品 weight`)
+| v \ i | 0 | 1   | 2   | 3   | 4   |
+|-------|---|-----|-----|-----|-----|
+| 0     | 0 | 0   | 0   | 0   | 0   |
+| 1     | ∞ | 100 | 100 | 100 | 100 |
+| 2     | ∞ | ∞   | 150 | 150 | 150 |
+| 3     | ∞ | ∞   | 250 | 200 | 200 |
+| 4     | ∞ | ∞   | ∞   | 300 | 300 |
+| 5     | ∞ | ∞   | ∞   | 350 | 350 |
+| 6     | ∞ | ∞   | ∞   | 450 | 450 |
+| 7     | ∞ | ∞   | ∞   | ∞   | 500 |
+| 8     | ∞ | ∞   | ∞   | ∞   | 600 |
+| :     | : | :   | :   | :   | :   |
+| item | Wi  | Vi |
+|------|-----|----|
+| 1    | 100 | 1  |
+| 2    | 150 | 2  |
+| 3    | 200 | 3  |
+| 4    | 300 | 4  |
+因 W 背包容量只有 350, 由 dp[5][4] 往回找
+350 - 200 = 150
+150 - 150 = 0
+=> item 3 + item 2
+=> value = 2 + 3 = 5 #
+```markdown
+
+學生答案:
+令 Vi 為 ith 物品的 value, Wi 為 ith 物品的 weight, W 為 max capacity, B[k,w] 表示前 k 個物品在容量 W 下的 Max value
+令 B[k,w] = { B[k-1, w] if w < Wk 以 weight 為主方法
+{ Max([B[k-1, w], B[k-1, w-Wk] + bk]) o.w.
+bk = 第 k 個物品的 value
+初使時若 k=0 or w=0 => 0; B[0, v] 都設為 0
+
+| item | Wi  | Vi |
+|------|-----|----|
+| 1    | 100 | 1  |
+| 2    | 150 | 2  |
+| 3    | 200 | 3  |
+| 4    | 300 | 4  |
+
+| item \ w | 0 | 100 | 150 | 200 | 250 | 300 | 350 |
+|----------|---|-----|-----|-----|-----|-----|-----|
+| 0        | 0 | 0   | 0   | 0   | 0   | 0   | 0   |
+| X 1      | 0 | 1   | 1   | 1   | 1   | 1   | 1   |
+| V 2      | 0 | 1   | 2   | 2   | 3   | 3   | 3   | 2-2=0
+| V 3      | 0 | 1   | 2   | 3   | 3   | 4   | 5   | 5-3=2
+| X 4      | 0 | 1   | 2   | 3   | 3   | 4   | 5   |
+A = value = 5 #
+
+因此題 weight 較 value 大, 以 value 為主
+
+dp[v, i] = { 0 if v=0
+{ ∞ if i=0, v>0
+{ min(dp[v, i-1], dp[v-v_i, i-1] + w_i) o.w.  -> ith 物品的 weight
+-> ith 物品的 value
+
+| v \ i | 0 | 1   | 2   | 3   | 4   |
+|-------|---|-----|-----|-----|-----|
+| 0     | 0 | 0   | 0   | 0   | 0   |
+| 1     | ∞ | 100 | 100 | 100 | 100 |
+| 2     | ∞ | ∞   | 150 | 150 | 150 |
+| 3     | ∞ | ∞   | 250 | 200 | 200 |
+| 4     | ∞ | ∞   | ∞   | 300 | 300 |
+| 5     | ∞ | ∞   | ∞   | 350 | 350 |
+| 6     | ∞ | ∞   | ∞   | 450 | 450 |
+| 7     | ∞ | ∞   | ∞   | ∞   | 500 |
+| 8     | ∞ | ∞   | ∞   | ∞   | 600 |
+| :     | : | :   | :   | :   | :   |
+
+| item | Wi  | Vi |
+|------|-----|----|
+| 1    | 100 | 1  |
+| 2    | 150 | 2  |
+| 3    | 200 | 3  |
+| 4    | 300 | 4  |
+
+因 W 背包容量 共有 350, 由 dp[5][4] 往回找
+350 - 200 = 150 150 - 150 = 0
+=> item 3 + item 2
+=> value = 2 + 3 = 5 #
+```
+
+得分: 10.0/10.0
+
+評分理由: - 動態規劃遞迴公式的正確性與完整性（4分）：學生清楚定義了狀態（B[k,w]及dp[v,i]），正確表示了取/不取兩種選擇的遞迴關係，並包含初始條件，符合滿分要求。  
+- 表格計算示例的準確展示與步驟完整性（4分）：學生提供了與參考答案相符的計算表格，展示了利用範例（W=350）進行的中間狀態計算和回溯過程，最終正確推導出最優解。  
+- 解題思路與說明的清晰性（2分）：學生闡述了為何以value為狀態參數的原因，並清晰描述了每步選擇的邏輯和意義，解題思路明確。
+--------------------------------------------------------------------------------
+
+題號: 8
+
+問題:
+Consider the following six activities with (start time, finish time, and value): (2, 4, 3), (5, 5, 5), (3, 4, 2), (1, 4, 3), (1, 3, 1), (3, 5, 4). Illustrate a dynamic programming algorithm for computing the mutually-exclusive subset of activities of maximum total values using the above example.
+```
+
+
+評分標準:
+- 活動排序與前驅活動的識別 (3 分)  
+  - 完全正確：正確將活動按照結束時間排序，並清楚定義/計算每個活動的前驅活動（即該活動之前不重疊的最後一個活動）；說明如何計算前驅索引。  
+  - 部分正確：排序或前驅活動的選擇部分符合要求，但有輕微錯誤或解釋不夠清楚。  
+  - 未達標：未進行排序或無法正確識別前驅活動。
+
+- 定義遞迴關係與動態規劃表格填充 (4 分)  
+  - 完全正確：正確定義動態規劃的遞迴公式（例如 OPT(j) = max( value[j] + OPT(p(j)), OPT(j-1) )），並具體說明如何利用該公式填充表格；解釋狀態轉移的過程並展示計算步驟。  
+  - 部分正確：遞迴公式定義基本正確，但在表格填充或狀態解釋上存在部分疏漏或模糊。  
+  - 未達標：遞迴公式定義錯誤，或無法正確演示表格填充過程。
+
+- 舉例說明與構造最終解 (3 分)  
+  - 完全正確：使用題中範例清楚說明如何利用動態規劃表格進行回溯，選取互斥活動，構造出最大總價值活動組合，並展示最終值及活動選取過程。  
+  - 部分正確：有嘗試利用範例解釋，但在回溯過程或具體活動選取上說明不足。  
+  - 未達標：未針對範例進行具體說明或回溯解構造過程不清晰。
+
+標準答案:
+step 1: 先照結束時間排序 (ascending)
+| activity | start | end | value |
+|----------|-------|-----|-------|
+| 5        | 1     | 3   | 1     |
+| 4        | 1     | 4   | 3     |
+| 1        | 2     | 4   | 3     |
+| 3        | 3     | 4   | 2     |
+| 6        | 3     | 5   | 4     |
+| 2        | 5     | 5   | 5     |
+令 dp[j] 為選擇 activity j 的 Max value, p(j) 表活動 j 前結束的 最後一個 index ⇒ dp[j] = Max(dp[j-1], vj+dp[p(j)])
+使用 binary search (and dp[0]=0) 第j個活動的 value
+| activity | p(j) |
+|----------|------|
+| 5        | 0    |
+| 4        | 0    |
+| 1        | 0    |
+| 3        | 1    |
+| 6        | 1    |
+| 2        | 3    | (不能選 5 會重疊)
+| j | activity | start | end | value | p(j) | 狀態計算             | dp[j] |
+|---|----------|-------|-----|-------|------|----------------------|-------|
+| 1 | 5        | 1     | 3   | 1     | 0    | max(0, 1+0)          | 1     |
+| 2 | 4        | 1     | 4   | 3     | 0    | max(1, 3+0)          | 3     |
+| 3 | 1        | 2     | 4   | 3     | 0    | max(3, 3+0)          | 3     |
+| 4 | 3        | 3     | 4   | 2     | 1    | max(3, 2+1)          | 3     |
+| 5 | 6        | 3     | 5   | 4     | 1    | max(3, 4+1)          | 5     |
+| 6 | 2        | 5     | 5   | 5     | 3    | max(5, 5+3)          | 8     |
+最佳解 dp[6]=8
+option one ⇒ 選 activity (2,4,1,3) + activity (5,5,5)
+
+(如果 start time 不可與 end time overlap)
+| j | activity | start | end | value | p(j) | 狀態計算             | dp[j] |
+|---|----------|-------|-----|-------|------|----------------------|-------|
+| 1 | 5        | 1     | 3   | 1     | 0    | max(0, 1+0)          | 1     |
+| 2 | 4        | 1     | 4   | 3     | 0    | max(1, 3+0)          | 3     |
+| 3 | 1        | 2     | 4   | 3     | 0    | max(3, 3+0)          | 3     |
+| 4 | 3        | 3     | 4   | 2     | 1    | max(3, 2+1)          | 3     |
+| 5 | 2        | 5     | 5   | 5     | 3    | max(3, 5+3)          | 8     |
+| 6 | 6        | 3     | 5   | 4     | 1    | max(8, 4+1)          | 5     |
+```
+如果 start time 可與 finish time overlap
+① 先照 finish time sorting,
+令 si 為 activity i 的 start time, fi 為 activity i 的 finish time,
+Sij={ak: fi < sk < fk < sj} ⇒ Sij is the subset of activities in S that can start after activity ai finishes and finish before activity aj starts.
+f0=0 and Sn+1=fn+1, then S = S0,n+1
+令 HL(i)=max{ l = {1, 2, ..., i-1} | fl ≤ si}
+↳ 在 i 之前可選擇的 activity ↓ 前一個 finish time <= 當前 start time
+令 A(i)=考慮 activity i 的最大 value,
+令 wi 為 activity i 的 weight/value
+A(i) = { 0 , i=0
+       { max{ A(i-1), wi + A(HL(i)) } o.w.
+
+| activity | 1 | 2 | 3 | 4 | 5 | 6 |
+|----------|---|---|---|---|---|---|
+| start    | 1 | 1 | 2 | 3 | 3 | 5 |
+| finish   | 3 | 4 | 4 | 4 | 5 | 5 |
+| weight   | 1 | 3 | 3 | 2 | 4 | 5 |
+| HL(i)    | 0 | 0 | 0 | 1 | 1 | 5 |
+| A(i)     | 1 | 3 | 3 | 3 | 5 | 10 |
+
+A: Max value = 10, 選 (1,3,1) + (3,5,4) + (5,5,5)
+
+學生答案:
+step 1: 先照結束時間排序 (ascending)
+| activity | start | end | value |
+|----------|-------|-----|-------|
+| 5        | 1     | 3   | 1     |
+| 4        | 1     | 4   | 3     |
+| 1        | 2     | 4   | 3     |
+| 3        | 3     | 4   | 2     |
+| 6        | 3     | 5   | 4     |
+| 2        | 5     | 5   | 5     |
+令 dp[j] 為選擇 activity j 的 Max value, p(j) 表活動 j 前結束的 最後一個 index => dp[j] = Max(dp[j-1], v_j + dp[p(j)])
+(and dp[0]=0) 第j個活動的 value
+使用 binary search
+| activity | p(j) |
+|----------|------|
+| 5        | 0    |
+| 4        | 0    |
+| 1        | 0    |
+| 3        | 1    |
+| 6        | 1    |
+| 2        | 3    |
+(不能選5會重疊)
+| j | activity | start | end | value | p(j) | 狀態計算        | dp[j] |
+|---|----------|-------|-----|-------|------|-----------------|-------|
+| 1 | 5        | 1     | 3   | 1     | 0    | max(0, 1+0)     | 1     |
+| 2 | 4        | 1     | 4   | 3     | 0    | max(1, 3+0)     | 3     |
+| 3 | 1        | 2     | 4   | 3     | 0    | max(3, 3+0)     | 3     |
+| 4 | 3        | 3     | 4   | 2     | 1    | max(3, 2+1)     | 3     |
+| 5 | 6        | 3     | 5   | 4     | 1    | max(3, 4+1)     | 5     |
+| 6 | 2        | 5     | 5   | 5     | 3    | max(5, 5+3)     | 8     |
+最佳解 dp[6]=8
+option one => 選 activity (2,1,4,3) + activity (5,5,5)
+
+(如果 start time 不可與 end time overlap)
+| j | activity | start | end | value | p(j) | 狀態計算        | dp[j] |
+|---|----------|-------|-----|-------|------|-----------------|-------|
+| 1 | 5        | 1     | 3   | 1     | 0    | max(0, 1+0)     | 1     |
+| 2 | 4        | 1     | 4   | 3     | 0    | max(1, 3+0)     | 3     |
+| 3 | 1        | 2     | 4   | 3     | 0    | max(3, 3+0)     | 3     |
+| 4 | 3        | 3     | 4   | 2     | 1    | max(3, 2+1)     | 3     |
+| 5 | 2        | 5     | 5   | 5     | 3    | max(3, 5+3)     | 8     |
+| 6 | 6        | 3     | 5   | 4     | 1    | max(8, 4+1)     | 5     |
+如果 start time 可跟 finish time overlap
+① 先照 finish time sorting,
+令 si 為 activity i 的 start time, fi 為 activity i 的 finish time,
+sij = {ak: fi < sk < fk < sj} ⇒ Sij is the subset of activities in S that can start after activity ai finishes and finish before activity aj starts. f0=0 and Sn+1=fn+1, then S=S0,n+1
+令 HL(i) = max{ l = {1, 2, ..., i-1} | fl ≤ si}
+→ 在 i 之前可選擇的 activity ↓ 前一個 finish time <= 當前 start time
+令 A(i) = 考慮 activity i 的最大 value,
+令 wi 為 activity i 的 weight/value
+A(i) = { 0 , i=0
+      { max{A(i-1), wi + A(HL(i))} o.w.
+
+| activity | 1 | 2 | 3 | 4 | 5 | 6 |
+|----------|---|---|---|---|---|---|
+| start    | 1 | 1 | 2 | 3 | 3 | 5 |
+| finish   | 3 | 4 | 4 | 4 | 5 | 5 |
+| weight   | 1 | 5 | 3 | 2 | 4 | 5 |
+| HL(i)    | 0 | 0 | 0 | 1 | 1 | 5 |
+| A(i)     | 1 | 3 | 3 | 3 | 5 | 10 |
+A: Max value = 10, 選 (1,3,1) + (3,5,4) + (5,5,5)
+
+得分: 10.0/10.0
+
+評分理由: - 活動排序與前驅活動的識別 (3 分)：學生答案正確地將活動按照結束時間排序，並明確給出各活動的 p(j) 值，與參考答案一致，故給予滿分。
+- 定義遞迴關係與動態規劃表格填充 (4 分)：學生答案正確定義了遞迴公式 dp[j] = max(dp[j-1], v_j + dp[p(j)]) 並展示了完整的 dp 表格填充過程，計算步驟清晰，故給予滿分。
+- 舉例說明與構造最終解 (3 分)：學生答案利用示例詳盡說明了如何回溯和構造最終的最優活動組合，並給出最優總價值及選擇的活動，與參考答案完全吻合，故給予滿分。
+--------------------------------------------------------------------------------
+
