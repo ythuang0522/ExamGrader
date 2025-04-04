@@ -1,6 +1,6 @@
 # ExamGrader
 
-ExamGrader is a Python application that uses generative AI to automatically extract handwritten questions and answers from PDF files and grade student answers against reference answers and question-associated rubrics using generative AI.
+ExamGrader is a Python application that uses generative AI to automatically extract handwritten [questions](Data/Homework1_2025.pdf) and [answers](Data/411000001_範例.pdf) from PDF files and generate a [rubric-grading report](Data/411000001_範例_results.txt) against reference answers.
 
 ## Features
 
@@ -39,20 +39,16 @@ python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_
 
 ### Input Files
 
-The application accepts questions, reference answers, and student's answers as input, which can be PDF or JSON. The exam questions should be numbered 1, 2, 3, and each question can have subparts labeled (a), (b), (c). For example: 1, 2, 3(a), 3(b), 4a, 4b, ...
+The application accepts questions (e.g., [Homework1_2025.pdf](Data/Homework1_2025.pdf)), reference answers, and student's answers (e.g., [411000001_範例.pdf](Data/411000001_範例.pdf)) as input, which can be PDF or JSON. The exam questions should be numbered 1, 2, 3, and each question can have subproblems labeled (a), (b), (c). For example: 1, 2, 3(a), 3(b), 4a, ..., are allowed.
 
-Example files:
-- Questions: [Homework1_2025.pdf](Data/Homework1_2025.pdf)
-- Student or reference answers (single studnet): [411000001_範例.pdf](Data/411000001_範例.pdf)
-
-1. **PDF Files**: When processing answer PDF files, the app will automatically extract and parition answers into questions and subproblems (e.g., 1, 2, 3a, 3b, ...). The app will additionally generate rubrics for each question in the ```-q questions_file```. 
+1. **PDF Files**: When processing PDF files, the app will automatically extract and parition questions/answers into questions and subproblems (e.g., 1, 2, 3a, 3b, ...). The app will additionally generate rubrics for each question in the ```-q questions_file```. 
 2. **JSON Files**: Pre-parsed, intermediate files produced by the app from previous runs. When using JSON files, existing, questions, rubrics and answers are directly extracted. This is useful for:
 - Manually reviewing and adjusting parsed content (e.g., rubrics)
 - Consistent grading without re-extracting and parsing content
 
 ### Output Files
 
-The application generates several types of output files during the grading process:
+The app generates several types of output files during the grading process:
 
 1. **Grading Results (`.txt`)**
    - Default filename: `{student_filename}_results.txt` (e.g., [411000001_範例_results.txt](Data/411000001_範例_results.txt))
