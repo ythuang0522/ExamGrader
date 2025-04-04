@@ -45,3 +45,5 @@ Thumbs.db
 # Project specific
 Data/*
 !Data/.gitkeep
+!Data/Homework1_2025.pdf
+!Data/411000001_範例.pdf

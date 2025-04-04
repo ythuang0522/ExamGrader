@@ -8,8 +8,7 @@ ExamGrader is a Python application that uses generative AI to automatically extr
 - Parse question scores, tables, and figures in the question file
 - Automatically generate detailed grading rubrics for each question
 - Grade student handwritten answers against correct answers based on rubrics
-- Generate detailed grading reports with scores, rubrics, and reasons
-- Support for multiple grading rounds to ensure fairness
+- Generate detailed grading reports with scores and reasons
 - Web interface for easy file upload and grading management
 - Built-in jailbreak detection to identify potential AI prompt attacks in student answers
 - Automatic partitioning of multi-student, handwritten answers into individual student files
@@ -43,14 +42,17 @@ python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_
 
 ### Input File Types
 
-The application accepts two types of input files:
-1. **PDF Files**: Requires Gemini API key for extraction. When processing PDF files, the system will automatically generate rubrics for all questions in the ```-q questions_file```.
-2. **JSON Files**: Pre-parsed files from previous runs (fastest option). When using JSON files, existing, questions, rubrics and answers are directly extracted.
+The application accepts questions, reference answers, and student's answers as input, which can be PDF or JSON. The exam questions should be numbered 1, 2, 3, and each question can have subparts labeled (a), (b), (c). For example: 1, 2, 3(a), 3(b), 4a, 4b, ...
 
-When using JSON files, they must be in the format produced by the application's save_intermediate_json function. This is useful for:
+Example files:
+- Questions: [Homework1_2025.pdf](Data/Homework1_2025.pdf)
+- Student or reference answers (single studnet): [411000001_範例.pdf](Data/411000001_範例.pdf)
+
+1. **PDF Files**: When processing answer PDF files, the app will automatically extract and parition answers into questions and subproblems (e.g., 1, 2, 3a, 3b, ...). The app will additionally generate rubrics for each questions in the ```-q questions_file```. 
+2. **JSON Files**: Pre-parsed files from previous runs (fastest option). When using JSON files, existing, questions, rubrics and answers are directly extracted. When using JSON files, they must be in the format produced by the app's save_intermediate_json function. This is useful for:
 - Rerunning grading with different parameters without re-extracting content
 - Testing and debugging without API calls
-- Manually reviewing and adjusting parsed content
+- Manually reviewing and adjusting parsed content (e.g., rubrics)
 
 ### Student Answer Types
 
