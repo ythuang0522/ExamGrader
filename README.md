@@ -45,11 +45,10 @@ Example files:
 - Questions: [Homework1_2025.pdf](Data/Homework1_2025.pdf)
 - Student or reference answers (single studnet): [411000001_範例.pdf](Data/411000001_範例.pdf)
 
-1. **PDF Files**: When processing answer PDF files, the app will automatically extract and parition answers into questions and subproblems (e.g., 1, 2, 3a, 3b, ...). The app will additionally generate rubrics for each questions in the ```-q questions_file```. 
-2. **JSON Files**: Pre-parsed files from previous runs (fastest option). When using JSON files, existing, questions, rubrics and answers are directly extracted. When using JSON files, they must be in the format produced by the app's save_intermediate_json function. This is useful for:
-- Rerunning grading with different parameters without re-extracting content
-- Testing and debugging without API calls
+1. **PDF Files**: When processing answer PDF files, the app will automatically extract and parition answers into questions and subproblems (e.g., 1, 2, 3a, 3b, ...). The app will additionally generate rubrics for each question in the ```-q questions_file```. 
+2. **JSON Files**: Pre-parsed, intermediate files produced by the app from previous runs. When using JSON files, existing, questions, rubrics and answers are directly extracted. This is useful for:
 - Manually reviewing and adjusting parsed content (e.g., rubrics)
+- Consistent grading without re-extracting and parsing content
 
 ### Output Files
 
