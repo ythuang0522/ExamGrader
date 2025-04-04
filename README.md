@@ -1,17 +1,14 @@
 # ExamGrader
 
-ExamGrader is a Python application that uses generative AI to automatically extract handwritten questions and answers from PDF files and grade student answers against correct answers by AI using LLM-generated rubrics.
+ExamGrader is a Python application that uses generative AI to automatically extract handwritten questions and answers from PDF files and grade student answers against reference answers and question-associated rubrics using generative AI.
 
 ## Features
 
-- Extract questions and answers from handwritten, scanned PDF files
-- Parse question scores, tables, and figures in the question file
-- Automatically generate detailed grading rubrics for each question
-- Grade student handwritten answers against correct answers based on rubrics
-- Generate detailed grading reports with scores and reasons
-- Web interface for easy file upload and grading management
+- Extract handwritten answers for multiple questions and subproblems in a single file
+- Parse question scores, tables, and figures in the question and answer files
+- Generate detailed grading reports with scores and reasons according to question-associated rubrics
 - Built-in jailbreak detection to identify potential AI prompt attacks in student answers
-- Automatic partitioning of multi-student, handwritten answers into individual student files
+- Automatic partitioning of multi-student answers into individual files for batch processing
 
 ## Installation
 
