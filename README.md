@@ -1,18 +1,18 @@
 # ExamGrader
 
-ExamGrader is a Python application that uses AI to automatically extract questions and answers from PDF files and grade student answers against correct answers.
+ExamGrader is a Python application that uses generative AI to automatically extract handwritten questions and answers from PDF files and grade student answers against correct answers by AI using LLM-generated rubrics.
 
 ## Features
 
-- Extract questions and answers from PDF files using Gemini API
-- Parse question scores, tables, and figures
-- Grade student answers against correct answers using OpenAI API
+- Extract questions and answers from handwritten, scanned PDF files
+- Parse question scores, tables, and figures in the question file
 - Automatically generate detailed grading rubrics for each question
+- Grade student handwritten answers against correct answers based on rubrics
 - Generate detailed grading reports with scores, rubrics, and reasons
 - Support for multiple grading rounds to ensure fairness
-- Batch processing of multiple student answer files
 - Web interface for easy file upload and grading management
 - Built-in jailbreak detection to identify potential AI prompt attacks in student answers
+- Automatic partitioning of multi-student, handwritten answers into individual student files
 
 ## Installation
 
@@ -33,9 +33,7 @@ GEMINI_API_KEY=your_gemini_api_key
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-## Usage
-
-### Command Line Interface
+## Command Line Usage
 
 Run the application with the following command:
 
@@ -43,7 +41,83 @@ Run the application with the following command:
 python run.py -q <questions_file> -c <correct_answers_file> -s <student_answers_file> [-o <output_file>] [-r <rounds>] [--workers N] [--debug]
 ```
 
-### Web Interface
+### Input File Types
+
+The application accepts two types of input files:
+1. **PDF Files**: Requires Gemini API key for extraction. When processing PDF files, the system will automatically generate rubrics for all questions in the ```-q questions_file```.
+2. **JSON Files**: Pre-parsed files from previous runs (fastest option). When using JSON files, existing, questions, rubrics and answers are directly extracted.
+
+When using JSON files, they must be in the format produced by the application's save_intermediate_json function. This is useful for:
+- Rerunning grading with different parameters without re-extracting content
+- Testing and debugging without API calls
+- Manually reviewing and adjusting parsed content
+
+### Student Answer Types
+
+The application supports three types of student answer inputs:
+
+1. **Single Student PDF**
+   - A PDF file containing answers from a single student
+   - Processed directly without any splitting
+   - Example: `python run.py -q questions.pdf -c answers.pdf -s student1.pdf`
+
+2. **Directory of Student PDFs**
+   - A directory containing multiple PDF files, one for each student
+   - All PDFs in the directory are processed in batch
+   - Example: `python run.py -q questions.pdf -c answers.pdf -s student_answers/`
+
+3. **Multi-Student PDF**
+   - A single PDF file containing answers from multiple students, assuming the starting page of each student will contain student ID (e.g., 411110001) and student name (e.g., 黃耀廷) at the top-left corner.
+   - Automatically split into individual student PDFs using the `-m` flag
+   - Example: `python run.py -q questions.pdf -c answers.pdf -s all_students.pdf -m`
+   - The system will:
+     - Split the PDF into individual student files
+     - Create a new directory with the split files
+     - Process each student's answers separately
+     - Generate individual grading reports for each student
+
+### Rubric Generation and Management
+
+The application automatically generates detailed grading rubrics for each question when processing PDF files using OpenAI API. The rubrics:
+- Break down the total points into specific scoring criteria
+- Provide clear guidelines for full, partial, and no credit
+- Focus on key concepts and skills being tested
+- Are saved with the questions in the intermediate JSON files
+
+We recommend to generate the rubtics only once, revise them if necessary, and load the revised rubrics (```-q questions_file```) for grading. This allows you to:
+- Preserve carefully crafted rubrics across multiple grading sessions
+- Manually adjust rubrics if needed
+
+### Multiple Grading Rounds
+
+The application supports running multiple grading rounds when grading each student's answers to compensate the randomness nature of LLM:
+- Each round generates a separate result file
+- The system keeps track of the best score across all rounds
+- Final results are based on the round that achieved the highest score
+- Useful for handling variations in AI model responses
+
+To use three rounds of grading:
+```bash
+python run.py -q questions.pdf -c answers.pdf -s student.pdf -r 3
+```
+
+### Arguments
+
+- `-q, --questions-file`: Path to the questions file (PDF or JSON)
+- `-c, --correct-answers-file`: Path to the correct answers file (PDF or JSON)
+- `-s, --student-answers-file`: Path to student answers file or directory containing multiple PDF files
+- `-o, --output-file`: Optional: Path to save grading results (defaults to student_file_results.txt)
+- `-r, --rounds`: Optional: Number of grading rounds to run (default: 1)
+- `--workers`: Optional: Number of worker threads for parallel processing (default: 12)
+- `--gemini-api-key`: Gemini API key (overrides GEMINI_API_KEY in .env)
+- `--openai-api-key`: OpenAI API key (overrides OPENAI_API_KEY in .env)
+- `--debug`: Enable debug logging
+- `--disable-jailbreak-check`: Optional: Disable jailbreak detection (enabled by default)
+- `-m, --split-multi-student-pdf`: Optional: Split a multi-student PDF into individual files
+- `--gemini-model`: Optional: Gemini model to use (default: gemini-2.5-pro-exp-03-25)
+
+
+## Web Interface
 
 Start the web interface with:
 
@@ -54,69 +128,6 @@ python run.py --web [--host HOST] [--port PORT]
 By default, the web interface runs at http://127.0.0.1:5000. You can specify a different host and port using the optional arguments.
 
 The application supports both raw input files (PDF) and pre-parsed JSON files. When using JSON files, the extraction and parsing steps are skipped, making the process faster. JSON files are automatically detected by their `.json` extension.
-
-### Arguments
-
-- `-q, --questions-file`: Path to the questions file (PDF or JSON)
-- `-c, --correct-answers-file`: Path to the correct answers file (PDF or JSON)
-- `-s, --student-answers-file`: Path to student answers file or directory containing multiple PDF files
-- `-o, --output-file`: Optional: Path to save grading results (defaults to student_file_results.txt)
-- `-r, --rounds`: Optional: Number of grading rounds to run (default: 1)
-- `--workers`: Optional: Number of worker threads for parallel processing (default: 8)
-- `--gemini-api-key`: Gemini API key (overrides GEMINI_API_KEY in .env)
-- `--openai-api-key`: OpenAI API key (overrides OPENAI_API_KEY in .env)
-- `--debug`: Enable debug logging
-- `--disable-jailbreak-check`: Optional: Disable jailbreak detection (enabled by default)
-
-### Multiple Grading Rounds
-
-The application supports running multiple grading rounds for each student's answers to ensure fairness and accuracy. When using multiple rounds:
-- Each round generates a separate result file
-- The system keeps track of the best score across all rounds
-- Final results are based on the round that achieved the highest score
-- Useful for handling variations in AI model responses
-
-To use multiple rounds:
-```bash
-python run.py -q questions.pdf -c answers.pdf -s student.pdf -r 3
-```
-
-### Batch Processing
-
-You can process multiple student answer files at once by providing a directory:
-```bash
-python run.py -q questions.pdf -c answers.pdf -s student_answers_directory/
-```
-
-The system will:
-- Process all PDF files in the specified directory
-- Generate separate result files for each student
-- Support multiple rounds per student if specified
-
-
-### Input File Types
-
-The application accepts two types of input files:
-1. **PDF Files**: Requires Gemini API key for extraction. When processing PDF files, the system will automatically generate rubrics for all questions.
-2. **JSON Files**: Pre-parsed files from previous runs (fastest option). When using JSON files, existing rubrics are preserved.
-
-When using JSON files, they must be in the format produced by the application's save_intermediate_json function. This is useful for:
-- Rerunning grading with different parameters without re-extracting content
-- Testing and debugging without API calls
-- Manually reviewing and adjusting parsed content
-
-### Rubric Generation
-
-The application automatically generates detailed grading rubrics for each question when processing PDF files using OpenAI API. The rubrics:
-- Break down the total points into specific scoring criteria
-- Provide clear guidelines for full, partial, and no credit
-- Focus on key concepts and skills being tested
-- Are saved with the questions in the intermediate JSON files
-
-When loading questions from a JSON file, the system will use the existing rubrics stored in the file. This allows you to:
-- Preserve carefully crafted rubrics across multiple grading sessions
-- Manually adjust rubrics if needed
-- Save time by reusing previously generated rubrics
 
 ## Project Structure
 
@@ -133,6 +144,7 @@ examgrader/
 │   ├── prompts.py         # AI prompt templates
 │   ├── parsers.py         # File parsing utilities with OOP design
 │   ├── jailbreak_detector.py # Jailbreak detection module
+│   ├── pdf_partitioner.py # Multi-student PDF partitioning module
 │   └── file_utils.py      # File operation utilities
 ├── web/                   # Web application components
 │   ├── templates/         # HTML templates for web interface
