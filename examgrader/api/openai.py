@@ -39,7 +39,7 @@ You MUST respond in EXACTLY this format:
 得分：<score>
 理由：<breif explanation of points awarded for each criterion>
 
-The explanation should be clear and detailed, explaining how many points were awarded for each criterion and why."""
+The explanation should be clear and brief, explaining how many points were awarded for each criterion and why."""
 
             completion = self.client.chat.completions.create(
                 model=model_name,
@@ -51,7 +51,13 @@ The explanation should be clear and detailed, explaining how many points were aw
             )
 
             reply = completion.choices[0].message.content
-            
+                # Retrieve token usage details
+            token_usage = completion.usage
+            logger.debug(f"Token usage: {token_usage}")
+            logger.debug(f"Total tokens: {token_usage.total_tokens}")
+            logger.debug(f"Prompt tokens: {token_usage.prompt_tokens}")
+            logger.debug(f"Completion tokens: {token_usage.completion_tokens}")
+
             logger.debug(f"OpenAI API response: {reply}")
             
             score_match = re.search(r'得分：(\d+)', reply)

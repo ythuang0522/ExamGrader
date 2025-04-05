@@ -37,7 +37,7 @@ class GeminiAPI:
             f"Retry {retry_state.attempt_number} failed with error: {retry_state.outcome.exception()}"
         )
     )
-    def generate_content(self, prompt: str, image: Optional[Image.Image] = None, model_name: str = "gemini-2.5-pro-exp-03-25") -> Optional[str]:
+    def generate_content(self, prompt: str, image: Optional[Image.Image] = None, model_name: str = "gemini-2.5-pro-preview-03-25") -> Optional[str]:
         """Generate content using Gemini API with enhanced retry mechanism.
         
         Args:
@@ -54,10 +54,7 @@ class GeminiAPI:
             contents = [prompt]
             if image:
                 contents.append(image)
-            
-            # Add a small delay before each request to help avoid rate limits
-            time.sleep(2)
-            
+                        
             response = self.client.models.generate_content(
                 model=model_name,
                 contents=contents
@@ -67,6 +64,8 @@ class GeminiAPI:
                 logger.warning("Gemini API returned empty response")
                 return None
                 
+            logger.debug(f"Gemini API usage metadata: {response.usage_metadata}")
+
             return response.text
             
         except Exception as e:

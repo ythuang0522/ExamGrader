@@ -7,6 +7,7 @@ from enum import Enum
 from dotenv import load_dotenv
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple, Any
+from concurrent.futures import ThreadPoolExecutor
 
 from examgrader.api.gemini import GeminiAPI
 from examgrader.api.openai import OpenAIAPI
@@ -212,12 +213,32 @@ def process_directory_of_pdfs(directory_path: Path, questions: Dict, correct_ans
         
     logger.info(f"Found {len(pdf_files)} PDF files to process")
     
-    for student_file in pdf_files:
-        logger.info(f"\nProcessing student file: {student_file}")
-        # Clear output file for each student to generate unique output
-        current_args = args
-        current_args.output_file = None
-        process_single_student_pdf(student_file, questions, correct_answers, grader, current_args, gemini_api)
+    # Process files in parallel using ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+        futures = []
+        for student_file in pdf_files:
+            logger.info(f"\nProcessing student file: {student_file}")
+            # Clear output file for each student to generate unique output
+            current_args = args
+            current_args.output_file = None
+            # Submit each student file for processing
+            future = executor.submit(
+                process_single_student_pdf,
+                student_file,
+                questions,
+                correct_answers,
+                grader,
+                current_args,
+                gemini_api
+            )
+            futures.append(future)
+        
+        # Wait for all futures to complete
+        for future in futures:
+            try:
+                future.result()  # This will raise any exceptions that occurred
+            except Exception as e:
+                logger.error(f"Error processing student file: {e}")
 
 
 def process_single_student_pdf(student_path: Path, questions: Dict, correct_answers: Dict, 
@@ -386,7 +407,7 @@ def main():
         openai_api = OpenAIAPI(openai_api_key)
         
         # Initialize grader
-        grader = ExamGrader(openai_api)
+        grader = ExamGrader(openai_api, max_workers=args.workers)
         
         # Determine input type
         input_type = determine_input_type(args)

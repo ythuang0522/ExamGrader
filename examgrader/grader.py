@@ -15,13 +15,15 @@ logger = logging.getLogger(__name__)
 class ExamGrader:
     """Handles exam grading using OpenAI API"""
     
-    def __init__(self, openai_api):
+    def __init__(self, openai_api, max_workers=None):
         """Initialize the exam grader.
         
         Args:
             openai_api: Initialized OpenAIAPI instance
+            max_workers: Maximum number of worker threads for parallel processing (default: None)
         """
         self.openai_api = openai_api
+        self.max_workers = max_workers
         self._score_lock = threading.Lock()  # Only need lock for accumulating total scores
     
     def _is_parent_question(self, q_num: str, questions: Dict[str, Dict[str, Any]]) -> bool:
@@ -151,7 +153,7 @@ class ExamGrader:
         sorted_questions = sorted(questions.items())
         
         # Use ThreadPoolExecutor for parallel processing
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
             # Submit all grading tasks
             future_to_question = {
                 executor.submit(
