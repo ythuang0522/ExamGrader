@@ -60,6 +60,37 @@ class ExamGrader:
                 f"sum of subproblem scores ({subproblem_scores})"
             )
     
+    def _grade_single_answer(self, prompt: str) -> Tuple[int, str]:
+        """Grade a single answer using OpenAI API.
+        
+        Args:
+            prompt: The grading prompt containing question, answer, and rubric
+            
+        Returns:
+            Tuple of (score, reason)
+            
+        Raises:
+            Exception: If API call fails or response parsing fails
+        """
+        response = self.openai_api.call_api(
+            system_prompt=PromptManager.get_grader_system_prompt(),
+            user_prompt=prompt,
+            model_name="o3-mini"
+        )
+        
+        # Parse the response
+        score_match = re.search(r'得分：(\d+)', response)
+        reason_match = re.search(r'理由：([\s\S]*?)(?=\n\n|$)', response)
+        
+        if not score_match or not reason_match:
+            raise ValueError("Invalid response format from API")
+            
+        score = int(score_match.group(1))
+        reason = reason_match.group(1).strip()
+        
+        logger.debug(f"Extracted score: {score}, reason: {reason}")
+        return score, reason
+
     def _grade_question(self, q_num: str, question_data: Dict[str, Any], 
                        questions: Dict[str, Dict[str, Any]],
                        correct_answers: Dict[str, Dict[str, Any]], 
@@ -80,21 +111,47 @@ class ExamGrader:
         Returns:
             Tuple of (earned score, max score)
         """
-        # Skip if this is a parent question with subproblems - we'll grade those individually
-        if self._is_parent_question(q_num, questions) and not processed_parents.get(q_num, False):
-            processed_parents[q_num] = True
-            logger.debug(f"Question {q_num} has subproblems, grading those individually")
-            return 0, 0
+        try:
+            # Skip if this is a parent question with subproblems - we'll grade those individually
+            if self._is_parent_question(q_num, questions) and not processed_parents.get(q_num, False):
+                processed_parents[q_num] = True
+                logger.debug(f"Question {q_num} has subproblems, grading those individually")
+                return 0, 0
+                
+            max_score = float(question_data['score'])
             
-        max_score = float(question_data['score'])
-        
-        # Check if we have both correct and student answers
-        if q_num not in correct_answers or q_num not in student_answers:
-            logger.warning(f"Missing {'correct' if q_num not in correct_answers else 'student'} answer for question {q_num}")
+            # Check if we have both correct and student answers
+            if q_num not in correct_answers or q_num not in student_answers:
+                logger.warning(f"Missing {'correct' if q_num not in correct_answers else 'student'} answer for question {q_num}")
+                results[q_num] = {
+                    'score': 0,
+                    'max_score': max_score,
+                    'reason': f"Missing {'correct' if q_num not in correct_answers else 'student'} answer",
+                    'question': question_data['text'],
+                }
+                
+                # Format answers with tables and figures if available
+                results[q_num]['correct_answer'] = self._format_answer_with_media(correct_answers.get(q_num, {}))
+                results[q_num]['student_answer'] = self._format_answer_with_media(student_answers.get(q_num, {}))
+                results[q_num]['rubric'] = question_data.get('rubric', 'No rubric available')
+                return 0, max_score
+                
+            # Generate grading prompt
+            prompt = PromptManager.get_grading_prompt(
+                question_data, correct_answers[q_num], student_answers[q_num]
+            )
+                    
+            # Call API to grade
+            score, reason = self._grade_single_answer(prompt)
+            
+            # Ensure score doesn't exceed max
+            score = min(score, max_score)
+            
+            # Store results
             results[q_num] = {
-                'score': 0,
+                'score': score,
                 'max_score': max_score,
-                'reason': f"Missing {'correct' if q_num not in correct_answers else 'student'} answer",
+                'reason': reason,
                 'question': question_data['text'],
             }
             
@@ -102,34 +159,22 @@ class ExamGrader:
             results[q_num]['correct_answer'] = self._format_answer_with_media(correct_answers.get(q_num, {}))
             results[q_num]['student_answer'] = self._format_answer_with_media(student_answers.get(q_num, {}))
             results[q_num]['rubric'] = question_data.get('rubric', 'No rubric available')
-            return 0, max_score
             
-        # Generate grading prompt
-        prompt = PromptManager.get_grading_prompt(
-            question_data, correct_answers[q_num], student_answers[q_num]
-        )
-                
-        # Call API to grade
-        score, reason = self.openai_api.grade_answer(prompt)
-        
-        # Ensure score doesn't exceed max
-        score = min(score, max_score)
-        
-        # Store results
-        results[q_num] = {
-            'score': score,
-            'max_score': max_score,
-            'reason': reason,
-            'question': question_data['text'],
-        }
-        
-        # Format answers with tables and figures if available
-        results[q_num]['correct_answer'] = self._format_answer_with_media(correct_answers.get(q_num, {}))
-        results[q_num]['student_answer'] = self._format_answer_with_media(student_answers.get(q_num, {}))
-        results[q_num]['rubric'] = question_data.get('rubric', 'No rubric available')
-        
-        logger.debug(f"Question {q_num}: {score}/{max_score} - {reason}")
-        return score, max_score
+            logger.debug(f"Question {q_num}: {score}/{max_score} - {reason}")
+            return score, max_score
+            
+        except Exception as e:
+            logger.error(f"Error grading question {q_num}: {e}")
+            results[q_num] = {
+                'score': 0,
+                'max_score': float(question_data['score']),
+                'reason': f"Error grading question: {str(e)}",
+                'question': question_data['text'],
+                'correct_answer': self._format_answer_with_media(correct_answers.get(q_num, {})),
+                'student_answer': self._format_answer_with_media(student_answers.get(q_num, {})),
+                'rubric': question_data.get('rubric', 'No rubric available')
+            }
+            return 0, float(question_data['score'])
 
     def grade_exam(self, questions: Dict[str, Dict[str, Any]], 
                    correct_answers: Dict[str, Dict[str, Any]], 

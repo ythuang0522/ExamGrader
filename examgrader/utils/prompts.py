@@ -6,6 +6,24 @@ class PromptManager:
     """Manages prompts for different types of extractions and grading"""
     
     @staticmethod
+    def get_grader_system_prompt() -> str:
+        """Get system prompt that defines the AI grader's role and format"""
+        return """You are an expert exam grader. Your task is to grade student answers based on the rubric and reference answer.
+Follow these guidelines:
+1. Carefully read and understand the rubric criteria for each question
+2. Evaluate the student's answer against each criterion in the rubric and reference answer
+3. Assign points based on how well the student meets each criterion in the rubtic
+4. Provide a detailed explanation for the points awarded for each criterion
+5. Ensure the total score does not exceed the maximum points specified
+6. Be objective and consistent in your grading
+
+You MUST respond in EXACTLY this format:
+得分：<score>
+理由：<breif explanation of points awarded for each criterion>
+
+The explanation should be clear and brief, explaining how many points were awarded for each criterion and why."""
+
+    @staticmethod
     def get_student_id_extraction_prompt() -> str:
         """Get prompt for extracting student ID and name from exam pages"""
         return """Look at this exam page and search for

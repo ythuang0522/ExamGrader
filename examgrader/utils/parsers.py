@@ -195,9 +195,14 @@ class RubricGenerator:
             q_data['score']
         )
         
-        rubric = self.openai_api.generate_rubric(prompt)
+        response = self.openai_api.call_api(
+            user_prompt=prompt,
+            model_name="o3-mini",
+            reasoning_effort="high"
+        )
+        
         logger.info(f"Generated rubric for question {q_num}")
-        return q_num, rubric
+        return q_num, response
     
     def _process_rubric_results(self, questions: Dict[str, Dict[str, Any]], future_to_question: Dict):
         """Process results from parallel rubric generation."""
