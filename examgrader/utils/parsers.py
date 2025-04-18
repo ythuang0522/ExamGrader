@@ -197,7 +197,7 @@ class RubricGenerator:
         
         response = self.openai_api.call_api(
             user_prompt=prompt,
-            model_name="o3-mini",
+            model_name="o4-mini",
             reasoning_effort="high"
         )
         

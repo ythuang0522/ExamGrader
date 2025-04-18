@@ -119,51 +119,52 @@ def grade_exam_async(questions: Dict[str, Any], correct_answers: Dict[str, Any],
         openai_api = OpenAIAPI(api_key=api_key)
         grader = ExamGrader(openai_api)
         
-        # Check for jailbreak attempts
-        update_progress("Checking for jailbreak attempts...")
-        grading_progress['jailbreak_check']['status'] = 'running'
-        
-        detector = JailbreakDetector(gemini_api_key)
-        jailbreak_results = detector.detect_jailbreaks(student_answers)
-        grading_progress['jailbreak_check']['results'] = jailbreak_results
-        grading_progress['jailbreak_check']['has_jailbreak'] = jailbreak_results.get("safety_status") == "UNSAFE"
-        grading_progress['jailbreak_check']['status'] = 'complete'
-        
-        if grading_progress['jailbreak_check']['has_jailbreak']:
-            logger.warning("⚠️ JAILBREAK ATTEMPTS DETECTED in student answers!")
-            update_progress("Jailbreak detected. Assigning zero scores...")
+        # Check for jailbreak attempts if enabled
+        if request.form.get('enable_jailbreak_check'):
+            update_progress("Checking for jailbreak attempts...")
+            grading_progress['jailbreak_check']['status'] = 'running'
             
-            # Create results with zero scores
-            results = {}
-            valid_questions = [q_id for q_id in questions if q_id in correct_answers]
-            max_possible = sum(int(questions[q_id]['score']) for q_id in valid_questions)
+            detector = JailbreakDetector(gemini_api_key)
+            jailbreak_results = detector.detect_jailbreaks(student_answers)
+            grading_progress['jailbreak_check']['results'] = jailbreak_results
+            grading_progress['jailbreak_check']['has_jailbreak'] = jailbreak_results.get("safety_status") == "UNSAFE"
+            grading_progress['jailbreak_check']['status'] = 'complete'
             
-            for q_id in valid_questions:
-                question = questions[q_id]
-                correct_answer_text = correct_answers[q_id]['text']
-                student_answer_text = student_answers.get(q_id, {}).get('text', "No student answer provided")
+            if grading_progress['jailbreak_check']['has_jailbreak']:
+                logger.warning("⚠️ JAILBREAK ATTEMPTS DETECTED in student answers!")
+                update_progress("Jailbreak detected. Assigning zero scores...")
                 
-                results[q_id] = {
-                    'question': question['text'],
-                    'correct_answer': correct_answer_text,
-                    'student_answer': student_answer_text,
-                    'score': 0,
-                    'max_score': int(question['score']),
-                    'reason': 'Grading skipped due to jailbreak detection'
+                # Create results with zero scores
+                results = {}
+                valid_questions = [q_id for q_id in questions if q_id in correct_answers]
+                max_possible = sum(int(questions[q_id]['score']) for q_id in valid_questions)
+                
+                for q_id in valid_questions:
+                    question = questions[q_id]
+                    correct_answer_text = correct_answers[q_id]['text']
+                    student_answer_text = student_answers.get(q_id, {}).get('text', "No student answer provided")
+                    
+                    results[q_id] = {
+                        'question': question['text'],
+                        'correct_answer': correct_answer_text,
+                        'student_answer': student_answer_text,
+                        'score': 0,
+                        'max_score': int(question['score']),
+                        'reason': 'Grading skipped due to jailbreak detection'
+                    }
+                
+                # Store results
+                grading_progress['results'] = {
+                    'question_results': results,
+                    'total_score': 0,
+                    'max_possible': max_possible,
+                    'jailbreak_detected': True
                 }
-            
-            # Store results
-            grading_progress['results'] = {
-                'question_results': results,
-                'total_score': 0,
-                'max_possible': max_possible,
-                'jailbreak_detected': True
-            }
-            update_progress("Grading complete (jailbreak detected)!", len(questions))
-            grading_progress['is_complete'] = True
-            return
+                update_progress("Grading complete (jailbreak detected)!", len(questions))
+                grading_progress['is_complete'] = True
+                return
         
-        # Proceed with normal grading if no jailbreak detected
+        # Proceed with normal grading if no jailbreak detected or jailbreak check disabled
         def progress_callback(q_num):
             update_progress(f"Grading question {q_num}...", 
                           grading_progress['graded_questions'] + 1)

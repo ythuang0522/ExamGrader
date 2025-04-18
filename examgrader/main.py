@@ -57,14 +57,17 @@ def parse_args():
     
     # Model configuration
     parser.add_argument('--gemini-model', type=str, 
-                       default="gemini-2.5-pro-exp-03-25",
-                       help='Gemini model to use (default: gemini-2.5-pro-exp-03-25)')
+                       default="gemini-2.5-flash-preview-04-17",
+                       help='Gemini model to use (default: gemini-2.5-flash-preview-04-17)')
+    parser.add_argument('--openai-model', type=str,
+                       default="o4-mini",
+                       help='OpenAI model to use (default: o4-mini)')
     
     # Debug and safety options
     parser.add_argument('--debug', action='store_true', 
                        help='Enable debug logging')
-    parser.add_argument('--disable-jailbreak-check', action='store_true', 
-                       help='Disable jailbreak detection (enabled by default)')
+    parser.add_argument('--enable-jailbreak-check', action='store_true', 
+                       help='Enable jailbreak detection (disabled by default)')
     
     return parser.parse_args()
 
@@ -275,7 +278,7 @@ def process_single_student_pdf(student_path: Path, questions: Dict, correct_answ
     logger.info(f"Saved parsed student answers to {student_json}")
 
     # Check for jailbreak attempts if enabled
-    if not args.disable_jailbreak_check:
+    if not args.enable_jailbreak_check:
         if has_jailbreak_attempt(student_path, student_answers, output_file, grader, gemini_api):
             logger.warning(f"Jailbreak attempt detected in {student_path}. Aborting grading.")
             return
@@ -403,8 +406,8 @@ def main():
             raise ValueError("OpenAI API and Gemini API key must be provided either via --openai-api-key or OPENAI_API_KEY in .env")
             
         # Set up API clients
-        gemini_api = GeminiAPI(gemini_api_key)
-        openai_api = OpenAIAPI(openai_api_key)
+        gemini_api = GeminiAPI(gemini_api_key, model_name=args.gemini_model)
+        openai_api = OpenAIAPI(openai_api_key, model_name=args.openai_model)
         
         # Initialize grader
         grader = ExamGrader(openai_api, max_workers=args.workers)
@@ -425,6 +428,11 @@ def main():
         if input_type == InputType.MULTI_STUDENT_PDF:
             # split multi-student PDF, returns path to directory of split PDFs
             output_dir = split_multi_student_pdf(args, gemini_api)
+
+            # If in debug mode, stop after splitting the PDF
+            if args.debug:
+                logger.debug("Debug mode: Stopping after PDF split")
+                return 0
             # Update student path to the split directory and continue with directory processing
             args.student_answers_file = output_dir
             process_directory_of_pdfs(Path(output_dir), questions, correct_answers, grader, args, gemini_api)

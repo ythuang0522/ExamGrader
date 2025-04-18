@@ -5,21 +5,23 @@ import time
 import random
 from openai import OpenAI
 from openai import RateLimitError, APIError, APITimeoutError, APIConnectionError
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 class OpenAIAPI:
     """Handles core OpenAI API interactions."""
     
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, model_name: str = "o4-mini"):
         self.api_key = api_key
         self.client = OpenAI(api_key=self.api_key)
+        self.model_name = model_name
     
     def call_api(
         self, 
         user_prompt: str,
         system_prompt: str = "",
-        model_name: str = "o3-mini",
+        model_name: Optional[str] = None,
         reasoning_effort: str = "medium",
         max_retries: int = 3
     ) -> str:
@@ -28,7 +30,7 @@ class OpenAIAPI:
         Args:
             user_prompt: The user message containing the specific task
             system_prompt: The system message defining AI's role and behavior (optional)
-            model_name: Name of the model to use
+            model_name: Optional model name to override the default
             reasoning_effort: Level of reasoning effort ("auto", "low", "high")
             max_retries: Maximum number of retry attempts
             
@@ -49,7 +51,7 @@ class OpenAIAPI:
                 messages.append({"role": "user", "content": user_prompt})
                 
                 completion = self.client.chat.completions.create(
-                    model=model_name,
+                    model=model_name or self.model_name,
                     reasoning_effort=reasoning_effort,
                     messages=messages,
                 )

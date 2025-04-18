@@ -75,7 +75,7 @@ class ExamGrader:
         response = self.openai_api.call_api(
             system_prompt=PromptManager.get_grader_system_prompt(),
             user_prompt=prompt,
-            model_name="o3-mini"
+            model_name="o4-mini"
         )
         
         # Parse the response

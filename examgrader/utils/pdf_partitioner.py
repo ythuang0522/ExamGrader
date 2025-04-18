@@ -44,9 +44,7 @@ def analyze_multi_student_pdf(pdf_path: Path, gemini_api, max_workers: int = 4) 
             "image_bytes": image_bytes, 
             "page_num": page_num
         })
-    
-    logger.info(f"Rendered {len(image_data_list)} pages from PDF for analysis")
-    
+        
     # 3. Process pages in parallel using a thread pool
     # Using a dictionary with page numbers as keys to avoid synchronization issues
     results_by_page = {}
@@ -73,6 +71,17 @@ def analyze_multi_student_pdf(pdf_path: Path, gemini_api, max_workers: int = 4) 
     # 4. Organize results into a list
     student_records = list(results_by_page.values())
     
+    sorted_student_records = sorted(student_records, key=lambda x: x['start_page'])
+    logger.debug(f"Student records sorted by page number: {sorted_student_records}")
+
+    # Format student records in a tabular form
+    table_header = "Student ID    | Name          | Start Page"
+    table_separator = "-" * 40
+    table_rows = [table_header, table_separator]
+    for record in sorted_student_records:
+        table_rows.append(f"{record['student_id']:<12} | {record['name']:<12} | {record['start_page']}")
+    logger.debug("Student records sorted by page number:\n" + "\n".join(table_rows))
+
     # 5. Deduplicate and keep earliest occurrence of each student
     # This part is already thread-safe since it happens after all threads are done
     unique_records = {}
@@ -110,25 +119,25 @@ def analyze_pdf_page(page_data: Dict, gemini_api, pdf_path: Path) -> List[Dict]:
         img = Image.open(io.BytesIO(image_bytes))
         
         # Define how much to crop (in pixels)
-        crop_width = 1100    # pixels from left
-        crop_height = 300   # pixels from top
+        crop_width = 500    # pixels from left
+        crop_height = 100   # pixels from top
         
         # Crop top-left corner where student ID and name typically appear
         cropped_img = img.crop((0, 0, crop_width, crop_height))  # (left, top, right, bottom)
         
-        logger.info(f"Cropped page {page_num} image from {img.size} to {cropped_img.size}")
+        logger.debug(f"Cropped page {page_num} image from {img.size} to {cropped_img.size}")
         
         # Save cropped image for debugging if in debug mode
         if logger.getEffectiveLevel() <= logging.DEBUG:
             # Create debug directory relative to the pdf path
-            debug_dir = pdf_path.with_name("debug_cropped_images")
+            debug_dir = pdf_path.with_name(f"debug_cropped_images_{pdf_path.stem}")
             debug_dir.mkdir(exist_ok=True, parents=True)
             debug_path = debug_dir / f"page_{page_num}_crop.png"
             cropped_img.save(debug_path)
             logger.debug(f"Saved cropped image for page {page_num} to {debug_path}")
                 
         # Get response from Gemini using the existing generate_content method with cropped image
-        response_text = gemini_api.generate_content(PromptManager.get_student_id_extraction_prompt(), cropped_img, model_name="gemini-2.0-flash")
+        response_text = gemini_api.generate_content(PromptManager.get_student_id_extraction_prompt(), cropped_img, thinking_budget=0)
         
         if not response_text:
             logger.warning(f"Empty response from Gemini for page {page_num}")
